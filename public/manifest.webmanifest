@@ -1,0 +1,11 @@
+{
+  "name": "NCPOR Field Log",
+  "short_name": "Field Log",
+  "description": "Log field notes and photos at polar stations, even with no connection. Entries sync automatically when you're back online.",
+  "start_url": "/field",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f5f1",
+  "theme_color": "#10202b",
+  "icons": [{ "src": "/icons/field.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

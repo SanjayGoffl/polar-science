@@ -1,0 +1,194 @@
+// NCPOR Polar Outreach Portal — data model
+// Provenance rule: every AIContent row must point at exactly one source
+// (a Report or a FieldEntry). Enforced by a CHECK constraint in the migration.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Station {
+  id           String       @id @default(cuid())
+  slug         String       @unique
+  name         String
+  region       String // antarctica | arctic | himalaya
+  kind         String // station | field-site | historic
+  lat          Float
+  lng          Float
+  established  Int?
+  location     String
+  description  String
+  heroImage    String
+  expeditions  Expedition[]
+  fieldEntries FieldEntry[]
+}
+
+model Expedition {
+  id          String             @id @default(cuid())
+  slug        String             @unique
+  name        String
+  shortName   String
+  number      Int?
+  year        Int
+  season      String
+  region      String
+  stationId   String
+  station     Station            @relation(fields: [stationId], references: [id])
+  lat         Float
+  lng         Float
+  summary     String
+  heroImage   String
+  featured    Boolean            @default(false)
+  hasStory    Boolean            @default(false)
+  chapters    StoryChapter[]
+  projects    Project[]
+  reports     Report[]
+  media       Media[]
+  members     ExpeditionMember[]
+  dataProducts DataProduct[]
+}
+
+model StoryChapter {
+  id           String     @id @default(cuid())
+  expeditionId String
+  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+  order        Int
+  kind         String // why | what | where | who | found | data | publications | media
+  eyebrow      String
+  title        String
+  body         String
+  // optional map focus for the sticky map
+  lat          Float?
+  lng          Float?
+  zoom         Int?
+  image        String?
+  stats        String? // JSON array of {label, value}
+}
+
+model Project {
+  id           String     @id @default(cuid())
+  expeditionId String
+  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+  title        String
+  topic        String
+  lead         String
+  summary      String
+  reports      Report[]
+}
+
+model Person {
+  id          String             @id @default(cuid())
+  name        String
+  institution String
+  expertise   String
+  memberships ExpeditionMember[]
+}
+
+model ExpeditionMember {
+  expeditionId String
+  personId     String
+  role         String
+  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+  person       Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([expeditionId, personId])
+}
+
+model Report {
+  id           String          @id @default(cuid())
+  slug         String          @unique
+  expeditionId String
+  expedition   Expedition      @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+  projectId    String?
+  project      Project?        @relation(fields: [projectId], references: [id])
+  title        String
+  type         String // expedition-report | publication | technical-note
+  authors      String
+  venue        String?
+  publishedOn  DateTime
+  abstract     String
+  externalUrl  String?
+  sections     ReportSection[]
+  aiContent    AIContent[]
+}
+
+model ReportSection {
+  id        String            @id @default(cuid())
+  reportId  String
+  report    Report            @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  order     Int
+  number    String // e.g. "3" or "3.2"
+  heading   String
+  body      String
+  citedBy   AIContentSource[]
+}
+
+model Media {
+  id           String     @id @default(cuid())
+  expeditionId String
+  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+  type         String // photo | video
+  url          String
+  caption      String
+  altText      String
+  credit       String
+}
+
+model DataProduct {
+  id           String     @id @default(cuid())
+  expeditionId String
+  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+  title        String
+  parameter    String
+  format       String
+  volume       String
+  npdcUrl      String
+}
+
+model FieldEntry {
+  id           String      @id // client-generated UUID -> idempotent sync
+  stationId    String
+  station      Station     @relation(fields: [stationId], references: [id])
+  activity     String
+  notes        String
+  photoUrl     String?
+  submittedBy  String
+  capturedAt   DateTime
+  syncedAt     DateTime    @default(now())
+  reviewStatus String      @default("pending") // pending | approved | rejected
+  reviewedAt   DateTime?
+  aiContent    AIContent[]
+}
+
+model AIContent {
+  id                 String            @id @default(cuid())
+  kind               String // explanation | caption
+  audience           String // student | public | social
+  text               String
+  provider           String // claude | mock
+  model              String
+  generatedAt        DateTime          @default(now())
+  reviewStatus       String            @default("pending")
+  reviewedAt         DateTime?
+  sourceReportId     String?
+  sourceReport       Report?           @relation(fields: [sourceReportId], references: [id], onDelete: Cascade)
+  sourceFieldEntryId String?
+  sourceFieldEntry   FieldEntry?       @relation(fields: [sourceFieldEntryId], references: [id], onDelete: Cascade)
+  sources            AIContentSource[]
+
+  @@index([sourceReportId, kind, audience])
+}
+
+// Section-level provenance: which exact report sections an output is grounded in.
+model AIContentSource {
+  aiContentId String
+  sectionId   String
+  aiContent   AIContent     @relation(fields: [aiContentId], references: [id], onDelete: Cascade)
+  section     ReportSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@id([aiContentId, sectionId])
+}
