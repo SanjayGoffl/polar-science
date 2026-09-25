@@ -18,7 +18,7 @@ describe("mock provider", () => {
   const p = createMockProvider();
 
   it("cites only sections that exist, including the findings section", async () => {
-    const out = await p.explain(doc, "student");
+    const { draft: out } = await p.explain(doc, "student");
     const valid = new Set(doc.sections.map((s) => s.number));
     expect(out.usedSections.length).toBeGreaterThan(0);
     expect(out.usedSections.every((n) => valid.has(n))).toBe(true);
@@ -26,18 +26,18 @@ describe("mock provider", () => {
   });
 
   it("simplifies for students: drops error bars and converts small metres to cm", async () => {
-    const text = (await p.explain(doc, "student")).keyPoints.join(" ");
+    const text = (await p.explain(doc, "student")).draft.keyPoints.join(" ");
     expect(text).toContain("18 cm");
     expect(text).not.toContain("±");
   });
 
   it("keeps the original precision for the general public", async () => {
-    const out = await p.explain(doc, "public");
+    const { draft: out } = await p.explain(doc, "public");
     expect(out.keyPoints.join(" ")).toContain("1.62 ± 0.21 m");
   });
 
   it("produces a caption grounded in a real section", async () => {
-    const out = await p.caption(doc);
+    const { draft: out } = await p.caption(doc);
     expect(out.caption).toMatch(/ISEA-43/);
     expect(out.usedSections).toEqual(["2"]);
     expect(out.hashtags).toContain("#Antarctica");

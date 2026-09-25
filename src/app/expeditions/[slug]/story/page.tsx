@@ -41,6 +41,8 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
     season: e.season,
     region: e.region,
     summary: e.summary,
+    contentStatus: e.contentStatus,
+    sourceUrl: e.sourceUrl,
     heroImage: e.heroImage,
     station: { slug: e.station.slug, name: e.station.name, location: e.station.location, lat: e.station.lat, lng: e.station.lng, region: e.station.region },
     chapters: e.chapters.map((c) => ({

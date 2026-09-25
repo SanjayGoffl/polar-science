@@ -15,6 +15,7 @@ interface AIContentDTO {
   model: string;
   generatedAt: string;
   reviewStatus: string;
+  editedByReviewer: boolean;
   sources: { section: { id: string; number: string; heading: string } }[];
   sourceReport: { id: string; slug: string; title: string; type: string } | null;
 }
@@ -22,6 +23,7 @@ interface AIContentDTO {
 interface Result {
   content: AIContentDTO;
   cached: boolean;
+  canRegenerate?: boolean;
   fallbackReason: string | null;
 }
 
@@ -156,7 +158,7 @@ export function AIPanel({
           <div className="fade-in" key={current.content.id}>
             {current.fallbackReason && (
               <p className="text-xs rounded-lg bg-warn/10 text-warn p-2.5 mb-3">
-                The live AI service couldn&apos;t be reached, so this was produced by the offline summariser (extracted sentences only).
+                The live AI service was unavailable, so this came from the offline summariser. It only extracts and simplifies sentences from the report.
               </p>
             )}
             {tab === "explain" ? <Explanation text={current.content.text} /> : <CaptionCard text={current.content.text} report={report} content={current.content} />}
@@ -225,7 +227,10 @@ function Explanation({ text }: { text: string }) {
 function citationLine(content: AIContentDTO, report: ReaderReport) {
   const secs = content.sources.map((s) => `§${s.section.number}`).join(", ");
   const url = typeof window !== "undefined" ? `${window.location.origin}/reports/${report.slug}` : `/reports/${report.slug}`;
-  return `Source: ${report.expedition.shortName}, “${report.title}” ${secs} — ${url}`;
+  const line = `Source: ${report.expedition.shortName}, “${report.title}” ${secs} — ${url}`;
+  // Never let sample content leave the portal looking like an official NCPOR finding.
+  return report.contentStatus === "official" ? line : `${line}
+[Illustrative sample content, not an official NCPOR finding]`;
 }
 
 function CaptionCard({ text, report, content }: { text: string; report: ReaderReport; content: AIContentDTO }) {
@@ -251,7 +256,7 @@ function CaptionCard({ text, report, content }: { text: string; report: ReaderRe
         </div>
         <p className="mt-3 text-[15px] leading-relaxed">{caption}</p>
         <p className="mt-2 text-sm text-antarctica font-medium">{tags}</p>
-        <p className="mt-3 text-xs text-muted border-t border-line pt-2">📄 {citationLine(content, report)}</p>
+        <p className="mt-3 text-xs text-muted border-t border-line pt-2 whitespace-pre-line">📄 {citationLine(content, report)}</p>
       </div>
       <div className="flex items-center justify-between mt-3">
         <span className={`text-xs ${caption.length + tags.length > 280 ? "text-accent" : "text-muted"}`}>
@@ -272,6 +277,9 @@ function SourceBox({ content, report, onJump }: { content: AIContentDTO; report:
       <p className="text-sm font-semibold mt-1 leading-snug">
         {report.expedition.shortName} · {report.title}
       </p>
+      {report.contentStatus !== "official" && (
+        <p className="mt-1 text-[11px] font-semibold text-warn">Illustrative sample document (prototype data, not an NCPOR publication)</p>
+      )}
       <ul className="mt-2 space-y-1">
         {content.sources.map((s) => (
           <li key={s.section.id}>
@@ -288,6 +296,8 @@ function SourceBox({ content, report, onJump }: { content: AIContentDTO; report:
   );
 }
 
+const PROVIDER_LABEL: Record<string, string> = { openrouter: "OpenRouter", gemini: "Gemini", mock: "Offline summariser" };
+
 function Provenance({ result, onRegenerate }: { result: Result; onRegenerate: () => void }) {
   const c = result.content;
   const status =
@@ -298,13 +308,16 @@ function Provenance({ result, onRegenerate }: { result: Result; onRegenerate: ()
     <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">
       <span className={`rounded px-1.5 py-0.5 font-semibold ${status.cls}`}>{status.label}</span>
       <span>
-        {c.provider === "claude" ? `Claude (${c.model})` : "Offline summariser"} ·{" "}
+        {c.provider === "mock" ? PROVIDER_LABEL.mock : `${PROVIDER_LABEL[c.provider] ?? c.provider} (${c.model})`}
+        {c.editedByReviewer ? " · edited by reviewer" : ""} ·{" "}
         {new Date(c.generatedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
         {result.cached ? " · saved copy" : ""}
       </span>
-      <button onClick={onRegenerate} className="ml-auto underline font-semibold text-ink-2">
-        Regenerate
-      </button>
+      {result.canRegenerate && (
+        <button onClick={onRegenerate} className="ml-auto underline font-semibold text-ink-2">
+          Regenerate
+        </button>
+      )}
     </div>
   );
 }

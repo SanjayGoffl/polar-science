@@ -11,8 +11,9 @@ export interface LocalEntry {
   notes: string;
   submittedBy: string;
   capturedAt: string; // ISO timestamp from when it was logged in the field
-  photo?: Blob;
+  photo?: Blob; // full (resized) photo; dropped once uploaded to free device storage
   photoType?: string;
+  thumb?: Blob; // small preview kept for the list
   status: SyncStatus;
   attempts: number;
   lastError?: string;

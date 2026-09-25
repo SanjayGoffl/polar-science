@@ -165,7 +165,14 @@ export function FieldApp({ stations }: { stations: Station[] }) {
         <section aria-labelledby="queue-h">
           <div className="flex items-baseline justify-between">
             <h2 id="queue-h" className="font-serif text-2xl">On this device</h2>
-            <span className="text-xs text-muted">{entries?.length ?? 0} entries</span>
+            <span className="text-xs text-muted flex items-center gap-3">
+              {entries?.length ?? 0} entries
+              {!!entries?.some((e) => e.status === "synced") && (
+                <button className="underline hover:text-ink" onClick={() => fieldDb.entries.where("status").equals("synced").delete()}>
+                  Clear synced
+                </button>
+              )}
+            </span>
           </div>
           <ul className="mt-4 space-y-3" data-testid="entry-list">
             {entries?.length === 0 && <li className="card p-6 text-sm text-muted text-center">No entries yet. Log your first observation.</li>}
@@ -215,12 +222,12 @@ function EntryForm({ stations, online, onSaved }: { stations: Station[]; online:
 
   async function submit(ev: React.FormEvent) {
     ev.preventDefault();
-    if (!name.trim() || !notes.trim()) return;
+    if (!name.trim() || notes.trim().length < 3) return;
     setBusy(true);
     try {
       localStorage.setItem("field.name", name.trim());
     } catch {}
-    const img = photo ? await compressImage(photo) : null;
+    const [img, thumb] = photo ? await Promise.all([compressImage(photo), compressImage(photo, 240, 0.7)]) : [null, null];
     const st = stations.find((s) => s.slug === station)!;
     const row = await enqueue({
       station,
@@ -231,6 +238,7 @@ function EntryForm({ stations, online, onSaved }: { stations: Station[]; online:
       capturedAt: new Date().toISOString(),
       photo: img?.blob,
       photoType: img?.type,
+      thumb: thumb?.blob,
     });
     setNotes("");
     setPhoto(null);
@@ -273,7 +281,7 @@ function EntryForm({ stations, online, onSaved }: { stations: Station[]; online:
       </div>
       <label className="block">
         <span className="text-sm font-semibold">Notes</span>
-        <textarea required value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} maxLength={4000} className="mt-1 w-full rounded-lg border border-line px-3 py-2.5 bg-paper focus:bg-white focus:border-ink outline-none" placeholder="What did you observe or measure? Include numbers, locations and conditions." />
+        <textarea required minLength={3} value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} maxLength={4000} className="mt-1 w-full rounded-lg border border-line px-3 py-2.5 bg-paper focus:bg-white focus:border-ink outline-none" placeholder="What did you observe or measure? Include numbers, locations and conditions." />
       </label>
       <div>
         <span className="text-sm font-semibold">Photo (optional)</span>
@@ -310,12 +318,19 @@ const STATUS_STYLE: Record<LocalEntry["status"], { label: string; cls: string }>
 
 function EntryRow({ entry }: { entry: LocalEntry }) {
   const [thumb, setThumb] = useState<string | null>(null);
+  const preview = entry.thumb ?? entry.photo;
   useEffect(() => {
-    if (!entry.photo) return;
-    const url = URL.createObjectURL(entry.photo);
+    if (!preview) return;
+    const url = URL.createObjectURL(preview);
     setThumb(url);
     return () => URL.revokeObjectURL(url);
-  }, [entry.photo]);
+  }, [preview]);
+
+  async function remove() {
+    if (entry.status === "syncing") return;
+    if (entry.status !== "synced" && !confirm("Delete this entry from the device? It hasn't been uploaded yet.")) return;
+    await fieldDb.entries.delete(entry.id);
+  }
 
   const s = STATUS_STYLE[entry.status];
   const review =
@@ -352,6 +367,11 @@ function EntryRow({ entry }: { entry: LocalEntry }) {
           {entry.status === "failed" && entry.lastError && ` · ${entry.lastError}`}
         </p>
       </div>
+      {entry.status !== "syncing" && (
+        <button onClick={remove} className="self-start text-xs text-muted hover:text-accent underline" aria-label={`Remove entry: ${entry.activity} at ${entry.stationName}`}>
+          {entry.status === "synced" ? "Hide" : "Delete"}
+        </button>
+      )}
     </li>
   );
 }

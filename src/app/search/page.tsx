@@ -13,7 +13,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const has = q.length >= 2;
   const like = { contains: q };
 
-  const [expeditions, stations, reports] = has
+  const [expeditions, stations, reports, notes] = has
     ? await Promise.all([
         db.expedition.findMany({ where: { OR: [{ name: like }, { shortName: like }, { summary: like }] }, include: { station: true }, take: 10 }),
         db.station.findMany({ where: { OR: [{ name: like }, { location: like }, { description: like }] }, take: 10 }),
@@ -22,10 +22,16 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           include: { expedition: true, sections: { where: { OR: [{ heading: like }, { body: like }] }, take: 1 } },
           take: 20,
         }),
+        db.fieldEntry.findMany({
+          where: { reviewStatus: "approved", OR: [{ notes: like }, { activity: like }] },
+          include: { station: true },
+          orderBy: { capturedAt: "desc" },
+          take: 10,
+        }),
       ])
-    : [[], [], []];
+    : [[], [], [], []];
 
-  const total = expeditions.length + stations.length + reports.length;
+  const total = expeditions.length + stations.length + reports.length + notes.length;
 
   const snippet = (text: string) => {
     const i = text.toLowerCase().indexOf(q.toLowerCase());
@@ -39,7 +45,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       <h1 className="font-serif text-4xl tracking-tight mb-6">Search</h1>
       <SearchBox defaultValue={q} />
       <p className="text-xs text-muted mt-3">
-        Searches stories, stations and reports in this portal. For scientific datasets, use the{" "}
+        Searches stories, stations, reports and published field notes in this portal. For scientific datasets, use the{" "}
         <a href="https://npdc.ncaor.gov.in/" className="underline" target="_blank" rel="noreferrer">National Polar Data Center ↗</a>.
       </p>
 
@@ -97,6 +103,24 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                 </li>
               );
             })}
+          </ul>
+        </section>
+      )}
+
+      {notes.length > 0 && (
+        <section className="mt-10">
+          <h2 className="eyebrow mb-3">Field notes</h2>
+          <ul className="space-y-3">
+            {notes.map((n) => (
+              <li key={n.id}>
+                <Link href={`/stations/${n.station.slug}`} className="card p-4 block hover:border-ink">
+                  <span className="text-xs text-muted">
+                    {n.station.name} · {n.activity} · {n.submittedBy}
+                  </span>
+                  <span className="block text-sm text-ink-2 mt-1">“{snippet(n.notes)}”</span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </section>
       )}

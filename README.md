@@ -11,12 +11,22 @@ This is **not** a replacement for the [National Polar Data Center (NPDC)](https:
 | Feature | Where | What makes it real |
 |---|---|---|
 | **Map + timeline navigation** | `/explore` | Leaflet map with real station coordinates (Bharati, Maitri, Dakshin Gangotri, Himadri, Himansh, Sutri Dhaka). Clicking a pin highlights that station's expeditions on the timeline; clicking a timeline card moves the map to its station. State lives in the URL (`?station=bharati`), so views can be shared. |
-| **Expedition Story mode** | `/expeditions/isea-43/story`, `/expeditions/arctic-2024/story` | 8 chapters (Why → What → Where → Who → Findings → Data → Publications → Photos). The chapter rail and sticky visual follow your scroll, and the map zooms to the station on "Where". |
+| **Expedition Story mode** | `/stories`, `/expeditions/isea-43/story`, `/expeditions/arctic-2024/story` | 8 chapters (Why → What → Where → Who → Findings → Data → Publications → Photos). The chapter rail and sticky visual follow your scroll, and the map zooms to the station on "Where". |
 | **AI "Explain simply" + social caption** | any `/reports/[slug]` | Student or general-public versions plus a ready-to-post caption. Every output is linked **in the database** to the exact report sections it used. Output that doesn't cite a real section is rejected, and a CHECK constraint makes it impossible to store AI text with no source. |
-| **Offline-first field intake** | `/field` | Entries (with photos) are saved to IndexedDB first, then synced automatically on reconnect. A service worker lets the page open with **no network**. Uploads are idempotent (device-generated UUID), so retries never duplicate. |
-| **Review before publishing** | `/admin` (passcode `ncpor2026`) | Field entries and AI drafts appear publicly only after approval. |
+| **Human review** | `/admin` | AI drafts and field entries are labelled *awaiting review* until a reviewer approves them. Reviewers can correct AI wording (the citations stay attached, and the edit is recorded). Approved versions are served first. |
+| **Offline-first field intake** | `/field` | Entries (with photos) are saved to IndexedDB first, then synced automatically on reconnect. A service worker lets the page open with **no network**. Uploads are idempotent (device-generated UUID, plus a content-level duplicate check), so retries never duplicate. |
+| **Search** | `/search` | Stations, expeditions, report sections and published field notes. Dataset search is NPDC's job. |
 
-**Honesty note:** station names, locations and founding years are real. Expedition narratives, reports, figures and team members are **illustrative seeded data** standing in for a future NPDC / DSpace / expedition-report integration. The site footer says so too. Imagery is generated illustration (`scripts/gen-art.mjs`), not photographs; swap in real NCPOR media when you have it.
+### Official vs illustrative content
+
+Station names, locations and founding years are real public facts, and each station links to NCPOR. **Everything else in the seed (expedition narratives, reports, figures, people) is illustrative sample data** standing in for a future NPDC / DSpace / expedition-report integration. It is never presented as NCPOR findings:
+
+- `Report.contentStatus` and `Expedition.contentStatus` are `illustrative` or `official`. A database CHECK constraint requires official reports to carry a source URL (`externalUrl`).
+- Illustrative stories, reports and expeditions show an **Illustrative sample** notice with links to the real NCPOR and NPDC sites.
+- AI output built on an illustrative source says so in the panel, and **copied social posts carry an "Illustrative sample content, not an official NCPOR finding" line**.
+- `Report.sourceSystem` and `Report.sourceId` are unique together, so a future NPDC or DSpace importer can upsert records without creating duplicates. No importer is included yet.
+
+Imagery is generated illustration (`scripts/gen-art.mjs`), not photographs.
 
 ## Quick start
 
@@ -25,99 +35,117 @@ Requires **Node 20+** (tested on Node 24, Windows 11).
 ```powershell
 npm install                 # also generates the Prisma client
 npx prisma migrate deploy   # creates dev.db (SQLite) from the migrations
-npm run seed                # loads 9 expeditions, 6 stations, 13 reports, 2 full stories
-npm run dev                 # http://localhost:3000
+npm run seed                # 9 expeditions, 6 stations, 13 reports, 2 full stories
+npm run build; npm start    # http://localhost:3000 (production build: needed for the offline service worker)
 ```
 
-On npm 11 you may be asked to approve install scripts for native packages. Run `npm approve-scripts better-sqlite3 prisma @prisma/engines esbuild` and then `npm rebuild`.
+On npm 11 you may be asked to approve install scripts for native packages: `npm approve-scripts better-sqlite3 prisma @prisma/engines esbuild`, then `npm rebuild`.
 
-### Configuration (optional)
+## AI setup
 
-Everything works without a `.env` file. To enable live AI, copy `.env.example` to `.env` and set:
+Copy `.env.example` to `.env` (a blank `.env` skeleton is included locally and is gitignored). **With no keys, everything still works** using the offline summariser.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | *(unset)* | Enables Claude for explanations and captions. **Without it, the offline summariser is used**: it only extracts and simplifies real sentences from the report, and still cites them. |
-| `ANTHROPIC_MODEL` | `claude-opus-5` | Any Claude model ID, e.g. `claude-sonnet-5` for faster, cheaper output. |
-| `AI_PROVIDER` | `claude` | Set to `mock` to force the offline summariser. |
-| `ADMIN_PASSCODE` | `ncpor2026` | Passcode for `/admin`. |
-| `DATABASE_URL` | `file:./dev.db` | SQLite file. |
+| `AI_PROVIDER` | `openrouter` | `openrouter`, `gemini` or `mock` (offline only) |
+| `OPENROUTER_API_KEY` | *(empty)* | Key from [openrouter.ai/keys](https://openrouter.ai/keys) |
+| `OPENROUTER_MODEL` | `google/gemma-4-31b-it:free` | Primary model |
+| `OPENROUTER_FALLBACK_MODEL` | `openrouter/free` | Tried if the primary is rate-limited, down, or replies with unusable JSON |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | *(empty)* / `gemini-2.5-flash` | Optional extra fallback, or primary with `AI_PROVIDER=gemini` |
+| `ADMIN_PASSCODE` | `ncpor2026` when empty | Review desk passcode. **Set it for any shared deployment.** |
+| `DATABASE_URL` | `file:./dev.db` | SQLite file |
 
-If Claude is configured but unreachable during a demo, the app falls back to the offline summariser automatically and **says so** in the panel.
+**Fallback chain:** OpenRouter primary model, then the OpenRouter fallback model, then Gemini (if keyed), then the offline summariser. Providers without a key are skipped. If the chain falls through to the offline summariser, the panel says so. The offline summariser only extracts and simplifies real sentences from the report and still cites them.
+
+**Keeping API usage low:**
+- Outputs are cached in the database per report, output type and audience, keyed by a hash of the source text. They are reused until the report changes.
+- Reviewer-approved versions are served first.
+- Identical simultaneous requests share one call.
+- Captions receive only the intro and the likeliest findings sections, chosen deterministically.
+- Section text is trimmed, and output length is capped (about 900 tokens for explanations, 300 for captions).
+- **Regenerate** is reviewer-only, and generation is rate-limited per client.
+- No SDKs: both APIs are called with `fetch`.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Dev server on :3000 |
-| `npm run build` then `npm start` | Production build and server. **Use this for the offline demo**: the service worker only registers in production. |
-| `npm test` | Unit tests (Vitest): citation validation, DB provenance constraints, offline sync engine, offline summariser |
-| `npm run test:e2e` | Playwright against the dev server: offline queue, then reconnect and sync; full demo path |
-| `npm run test:e2e:prod` | Builds, then runs Playwright against `next start`, adding the "reload while offline" service-worker test |
+| `npm run build` then `npm start` | Production build and server (use this for demos) |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run demo:reset` | Reloads seed data and deletes uploaded photos. Run it before presenting. |
+| `npm test` | Unit tests (Vitest): citation validation, DB constraints, AI providers and fallback, offline sync engine, offline summariser, upload sniffing, rate limiting |
+| `npm run test:e2e` | Playwright against the dev server |
+| `npm run test:e2e:prod` | Builds, then runs Playwright against `next start`: demo path, offline reload and sync, upload privacy, reviewer edits, mobile layouts |
+| `npm run demo:reset` | Reloads seed data and deletes uploaded photos. **Run it before presenting.** |
 | `npm run db:reset` | Drops and recreates the database from migrations, then seeds it |
-| `node scripts/gen-art.mjs` | Regenerates the illustration plates in `public/images/art/` |
+| `node scripts/gen-art.mjs` | Regenerates the illustration plates |
 
 First Playwright run: `npx playwright install chromium`.
 
 ## Demo script (about 6 minutes)
 
-Run on a production build: `npm run build && npm start`.
+Run `npm run demo:reset`, then `npm run build && npm start`.
 
-1. **Home** → *Explore the map* → click **Bharati**. The panel shows the station, and its expeditions light up on the timeline.
-2. Click **ISEA-43** → *Read the story*. Scroll through the chapters: the rail tracks progress, and on "Where we went" the map zooms to Prydz Bay.
-3. At **Publications**, click *✦ Explain this simply* on the expedition report. Point out the **Based on §…** box. Click a section to jump to it in the original text, which is marked *cited*.
-4. Toggle **Students ↔ General public**, then open **Social caption** → *Copy post*. The copied text includes the source line.
-5. Open **Field app** (`/field`) once while online. Then, in DevTools → Network, choose **Offline** (or use airplane mode, or the "Simulate no connection" box). **Reload the page**: it still opens. Log an entry with a photo, and it shows *Waiting for connection*.
+1. **Home** → *Explore the map* → click the **Bharati** pin. The panel shows the station, and its expeditions light up on the timeline.
+2. Click **ISEA-43** → *Read the story*. Point out the *Illustrative sample* notice. Scroll through the chapters: the rail tracks progress, and on "Where we went" the map zooms to Prydz Bay.
+3. At **Publications**, click *✦ Explain this simply*. Point out the **Based on §…** box. Click a section to jump to it in the original, which is marked *cited*.
+4. Toggle **Students ↔ General public**, then open **Social caption** → *Copy post*. The copied text includes the source line and the illustrative-content note.
+5. Open **Field app** (`/field`) once while online. Go offline (DevTools → Network → Offline, airplane mode, or the "Simulate no connection" box). **Reload**: the page still opens. Log an entry with a photo, and it shows *Waiting for connection*.
 6. Go back **online**: the entry syncs by itself (*Synced · In NCPOR review*).
-7. **Review** (`/admin`, passcode `ncpor2026`) → *Approve*. The note now appears on `/stations/bharati` under **Field notes**.
+7. **Review** (`/admin`, passcode `ncpor2026`): *Edit* an AI draft if you like, then *Approve* the field note. It now appears on `/stations/bharati` under **Field notes**, and its photo becomes public.
 
 ## Architecture
 
-One Next.js 16 app (App Router, TypeScript) with API route handlers and a SQLite database accessed through Prisma 7.
+One Next.js 16 app (App Router, TypeScript) with API route handlers and SQLite through Prisma 7.
 
 ```
 prisma/
-  schema.prisma            data model (Station, Expedition, StoryChapter, Project, Person,
-                           Report → ReportSection, Media, DataProduct, FieldEntry,
-                           AIContent → AIContentSource → ReportSection)
-  migrations/              includes hand-written CHECK constraints for AI provenance
+  schema.prisma            Station, Expedition, StoryChapter, Project, Person, Report → ReportSection,
+                           Media, DataProduct, FieldEntry, AIContent → AIContentSource → ReportSection
+  migrations/              includes hand-written CHECK constraints and triggers (provenance, statuses)
   seed.ts                  illustrative seed data
-public/sw.js               service worker (scoped to the field app's page and static assets)
-src/app/                   pages + API routes
-  api/ai/generate          POST: generate or reuse explanation/caption, stored with citations
-  api/field-entries        POST: idempotent multipart upload; GET ?ids= review status
-  api/admin/review         PATCH: approve/reject (cookie-authenticated)
-  api/uploads/[file]       serves field photos (uploads live in data/uploads, outside public/)
-src/lib/ai/                provider interface, Claude provider, offline provider, prompts, citation validation
+public/sw.js               service worker (field app page + static assets only)
+src/app/api/
+  ai/generate              POST: cached or new explanation/caption with citations (regenerate: reviewers only)
+  field-entries            POST: idempotent multipart upload (magic-byte image check); GET ?ids= review status
+  admin/review             PATCH: approve/reject/reopen, optional reviewer edit of AI text
+  uploads/[file]           field photos: public once approved, reviewers only before that
+src/lib/ai/                llm.ts (OpenRouter + Gemini over fetch), structured.ts (JSON validation + model fallback),
+                           mock.ts (offline summariser), prompts.ts, validate.ts (citations), index.ts (chain + cache)
 src/lib/offline/           IndexedDB queue (Dexie), sync engine, photo compression
-src/components/            map, timeline, story, AI panel, field app, admin
-tests/unit, tests/e2e
+src/lib/rateLimit.ts       per-client sliding-window limits (AI, uploads, admin login)
 ```
 
 ### How provenance is enforced
 
-1. The report is sent to the model as **numbered sections**. The model must return structured JSON (`usedSections`), using Claude's structured-output mode.
-2. The server maps those numbers to real `ReportSection` IDs and **rejects the output if none are valid** (`src/lib/ai/validate.ts`).
-3. `AIContent` and its `AIContentSource` rows (one per cited section) are written in **one transaction**.
-4. SQLite `CHECK` constraint: each `AIContent` row has **exactly one** source (a report or a field entry), backed by foreign keys. `tests/unit/provenance-constraint.test.ts` proves you can't insert unsourced AI text.
-5. The citation shown in the UI and appended to copied captions is built from those rows, never from text the model wrote.
+1. The report is sent as **numbered sections**. The model must return JSON with `usedSections`.
+2. The server maps those numbers to real `ReportSection` rows and **rejects the output if none are valid**. The next model or provider then gets a turn.
+3. `AIContent` and one `AIContentSource` row per cited section are written in a single transaction, with the source hash and prompt version.
+4. SQLite CHECK: each `AIContent` row has **exactly one** source (a report or a field entry), backed by foreign keys.
+5. Citations shown in the UI and appended to copied posts are built from those rows, never from model-written text.
 
 ### How offline sync works
 
-- Saving an entry writes to IndexedDB **first**, whether or not you're online. The photo is resized to 1600 px on the device.
-- `syncAll()` uploads queued entries oldest first. It runs one sync at a time, and a network error stops the run and keeps entries queued. It retries server errors (5xx, 408, 429) but not permanent rejections (4xx).
-- Sync triggers: page load, the browser `online` event, a 30-second timer, and the *Sync now* button.
-- The server upserts on the device's UUID, so a sync that is repeated or interrupted can't create duplicates.
-- The service worker caches `/field` (network-first) and `/_next/static` assets (cache-first). The page also tells the worker which assets it already loaded, so the first visit is enough to work offline.
+- Saving writes to IndexedDB **first**, online or not. Photos are resized to 1600 px, with a 240 px thumbnail. The full photo is dropped from the device once it's uploaded.
+- `syncAll()` uploads oldest first and runs one sync at a time. A network error stops the run and keeps entries queued. It retries 5xx, 408 and 429, but not permanent 4xx rejections.
+- Sync triggers: page load, the `online` event, a 30-second timer, and *Sync now*.
+- The server upserts on the device UUID, and also treats the same note, author and station within a minute as a duplicate.
+- The service worker caches `/field` (network-first) and hashed static assets (cache-first). The page reports the assets it already loaded, so the first visit is enough to work offline.
 
-**Phones on a LAN:** service workers need a secure context (`https://` or `localhost`). Over `http://<LAN-IP>`, the offline queue still works, but reloading while offline won't. For a phone demo, use an HTTPS tunnel or Chrome's "Insecure origins treated as secure" flag.
+**Phones on a LAN:** service workers need `https://` or `localhost`. Over `http://<LAN-IP>` the offline queue works, but reloading while offline doesn't. Use an HTTPS tunnel for phone demos.
 
-## Known limitations (prototype scope)
+### Security notes
 
-- A single shared review passcode, with no user accounts or roles.
-- Search is plain `LIKE` matching across this portal's own content. Dataset search is NPDC's job.
-- The map uses Web Mercator with a view per region. A polar stereographic projection would suit Antarctica better.
+- Review cookie: an httpOnly hash of the passcode, compared in constant time. Login is rate-limited.
+- Uploads: type is checked by magic bytes (JPEG, PNG, WebP), capped at 8 MB, and stored outside `public/`. Pending photos are not publicly readable.
+- Headers: `nosniff`, `Referrer-Policy`, `X-Frame-Options`, and a `Permissions-Policy` that allows only the camera.
+- API keys stay in `.env` (gitignored) and are used only on the server.
+
+## Known limitations
+
+- A single shared review passcode, with no user accounts or roles. The rate limiter is in-memory, so it's per server instance only.
+- Search is plain `LIKE` matching across this portal's own content.
+- The map uses Web Mercator with a view per region, not a polar projection.
 - Map tiles (Esri) and Google Fonts need internet the first time. Pins and content still render without tiles.
-- The seed content is illustrative and not an NCPOR publication.
+- There are no official NCPOR documents in the seed yet. The official path (content status plus source URL plus import IDs) exists but is empty.
+- Free OpenRouter models are rate-limited and can be slow. The cache and fallback chain absorb this, but first-time generation may take several seconds.

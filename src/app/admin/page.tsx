@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { ReviewQueue, type ReviewItem } from "@/components/admin/ReviewQueue";
-import { ADMIN_COOKIE, adminToken } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin";
 import { db } from "@/lib/db";
 import { logout } from "./actions";
 
@@ -10,14 +9,14 @@ export const metadata: Metadata = { title: "Review", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const authed = (await cookies()).get(ADMIN_COOKIE)?.value === adminToken();
+  const authed = await isAdmin();
   if (!authed) return <LoginForm />;
 
   const [fieldEntries, aiItems] = await Promise.all([
     db.fieldEntry.findMany({ orderBy: { syncedAt: "desc" }, include: { station: true }, take: 100 }),
     db.aIContent.findMany({
       orderBy: { generatedAt: "desc" },
-      include: { sourceReport: { select: { slug: true, title: true } }, sources: { include: { section: { select: { number: true, heading: true } } } } },
+      include: { sourceReport: { select: { slug: true, title: true, contentStatus: true } }, sources: { include: { section: { select: { number: true, heading: true } } } } },
       take: 100,
     }),
   ]);
@@ -41,7 +40,8 @@ export default async function AdminPage() {
       at: a.generatedAt.toISOString(),
       title: a.kind === "caption" ? "Social caption" : `Plain-language explanation · ${a.audience === "student" ? "students" : "general public"}`,
       body: a.text,
-      meta: `${a.provider === "claude" ? `Claude (${a.model})` : "Offline summariser"}`,
+      meta: `${a.provider === "mock" ? "Offline summariser" : `${a.provider === "gemini" ? "Gemini" : "OpenRouter"} · ${a.model}`} · generated ${a.generatedAt.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}${a.sourceReport?.contentStatus === "official" ? "" : " · source is illustrative sample"}`,
+      edited: a.editedByReviewer,
       photoUrl: null,
       source: a.sourceReport
         ? {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SourceNotice } from "@/components/Provenance";
 import { db } from "@/lib/db";
 import { REPORT_TYPE_LABEL, regionColor, regionLabel } from "@/lib/regions";
 
@@ -43,6 +44,9 @@ export default async function ExpeditionPage({ params }: { params: Promise<{ slu
           </p>
           <h1 className="font-serif text-4xl md:text-5xl tracking-tight leading-tight mt-2">{e.name}</h1>
           <p className="text-lg text-ink-2 mt-4 leading-relaxed">{e.summary}</p>
+          <div className="mt-4">
+            <SourceNotice status={e.contentStatus} sourceUrl={e.sourceUrl} what="expedition record" />
+          </div>
           {e.hasStory && (
             <Link href={`/expeditions/${e.slug}/story`} className="btn btn-accent mt-6">
               Read the full story →

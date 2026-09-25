@@ -23,6 +23,7 @@ model Station {
   location     String
   description  String
   heroImage    String
+  sourceUrl    String? // official page backing the station facts
   expeditions  Expedition[]
   fieldEntries FieldEntry[]
 }
@@ -43,6 +44,8 @@ model Expedition {
   summary     String
   heroImage   String
   featured    Boolean            @default(false)
+  contentStatus String           @default("illustrative") // illustrative | official
+  sourceUrl   String?
   hasStory    Boolean            @default(false)
   chapters    StoryChapter[]
   projects    Project[]
@@ -112,8 +115,14 @@ model Report {
   publishedOn  DateTime
   abstract     String
   externalUrl  String?
+  contentStatus String         @default("illustrative") // illustrative | official
+  sourceSystem String?         // e.g. "npdc", "dspace", "ncpor-web" for future imports
+  sourceId     String?         // record id in that system
+  updatedAt    DateTime        @default(now()) @updatedAt
   sections     ReportSection[]
   aiContent    AIContent[]
+
+  @@unique([sourceSystem, sourceId])
 }
 
 model ReportSection {
@@ -169,18 +178,21 @@ model AIContent {
   kind               String // explanation | caption
   audience           String // student | public | social
   text               String
-  provider           String // claude | mock
+  provider           String // openrouter | gemini | mock
   model              String
   generatedAt        DateTime          @default(now())
   reviewStatus       String            @default("pending")
   reviewedAt         DateTime?
+  editedByReviewer   Boolean           @default(false)
+  sourceHash         String? // hash of the cited document when generated; a mismatch means stale
+  promptVersion      String?
   sourceReportId     String?
   sourceReport       Report?           @relation(fields: [sourceReportId], references: [id], onDelete: Cascade)
   sourceFieldEntryId String?
   sourceFieldEntry   FieldEntry?       @relation(fields: [sourceFieldEntryId], references: [id], onDelete: Cascade)
   sources            AIContentSource[]
 
-  @@index([sourceReportId, kind, audience])
+  @@index([sourceReportId, kind, audience, sourceHash])
 }
 
 // Section-level provenance: which exact report sections an output is grounded in.

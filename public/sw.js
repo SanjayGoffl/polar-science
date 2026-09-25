@@ -8,7 +8,7 @@
  *  - The page posts the list of resources it loaded, so assets fetched before this
  *    worker took control are cached too.
  */
-const VERSION = "field-v1";
+const VERSION = "field-v2";
 const SHELL = "/field";
 
 self.addEventListener("install", (event) => {

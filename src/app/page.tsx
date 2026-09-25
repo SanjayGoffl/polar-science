@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { StatusBadge } from "@/components/Provenance";
 import { SearchBox } from "@/components/SearchBox";
 import { db } from "@/lib/db";
 import { REGIONS, regionColor, regionLabel, type Region } from "@/lib/regions";
@@ -28,7 +29,10 @@ export default async function Home() {
           <Image src={featured.heroImage} alt="" fill priority className="object-cover -z-10" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0b1822]/85 via-[#0b1822]/55 to-transparent" />
           <div className="mx-auto max-w-6xl px-5 py-24 md:py-32">
-            <p className="eyebrow !text-white/75">Featured story · {featured.season}</p>
+            <p className="eyebrow !text-white/75 flex flex-wrap items-center gap-2">
+              Featured story · {featured.season}
+              <StatusBadge status={featured.contentStatus} className="bg-white/90" />
+            </p>
             <h1 className="font-serif text-5xl md:text-7xl leading-[1.02] tracking-tight max-w-3xl mt-3">
               The summer the sea ice came up short.
             </h1>
@@ -117,8 +121,9 @@ export default async function Home() {
                 <Image src={s.heroImage} alt="" fill className="object-cover transition duration-700 group-hover:scale-105" />
               </div>
               <div className="p-6">
-                <p className="eyebrow" style={{ color: regionColor(s.region) }}>
+                <p className="eyebrow flex flex-wrap items-center gap-2" style={{ color: regionColor(s.region) }}>
                   {regionLabel(s.region)} · {s.station.name} · {s.year}
+                  <StatusBadge status={s.contentStatus} />
                 </p>
                 <h3 className="font-serif text-2xl mt-1 leading-snug">{s.name}</h3>
                 <p className="text-sm text-ink-2 mt-2">{s.summary}</p>

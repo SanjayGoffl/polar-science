@@ -15,6 +15,7 @@ const db = new PrismaClient({
 });
 
 const NPDC = "https://npdc.ncaor.gov.in/";
+const NCPOR_SITE = "https://www.ncpor.res.in/";
 const art = (n: string) => `/images/art/${n}.svg`;
 
 type Section = [heading: string, body: string];
@@ -276,7 +277,7 @@ const isea43: ExpeditionSeed = {
       body: "Field observations become reports and scientific papers. Open any of them and tap “Explain this simply” for a plain-language version with its source clearly cited.",
     },
     {
-      kind: "media", eyebrow: "Chapter 8 · Photos & videos",
+      kind: "media", eyebrow: "Chapter 8 · Photos",
       title: "Life at the bottom of the world.",
       body: "Scenes from the 2023–24 summer season at Bharati.",
     },
@@ -360,7 +361,7 @@ const arctic2024: ExpeditionSeed = {
     { kind: "found", eyebrow: "Chapter 5 · What we found", title: "Warm water stayed longer. The glacier pulled back.", body: "Atlantic Water filled the inner fjord for 61 days, far longer than the usual 38. Kronebreen glacier retreated 186 m in a single summer, and Atlantic plankton species became more common than Arctic ones.", image: art("blueice"), stats: [{ label: "Glacier retreat", value: "186 m" }, { label: "Warm-water days", value: "61" }] },
     { kind: "data", eyebrow: "Chapter 6 · Data generated", title: "A decade-long ocean record keeps growing.", body: "The IndArc mooring has recorded the fjord since 2014. This year's data joins the archive at NPDC." },
     { kind: "publications", eyebrow: "Chapter 7 · Publications", title: "What the science says.", body: "Read the reports, or let the portal explain them simply, with sources." },
-    { kind: "media", eyebrow: "Chapter 8 · Photos & videos", title: "Summer in the high Arctic.", body: "Scenes from Kongsfjorden." },
+    { kind: "media", eyebrow: "Chapter 8 · Photos", title: "Summer in the high Arctic.", body: "Scenes from Kongsfjorden." },
   ],
 };
 
@@ -501,7 +502,8 @@ async function main() {
 
   const stationIds: Record<string, string> = {};
   for (const s of stations) {
-    const row = await db.station.create({ data: s });
+    // Station names, locations and founding years are public facts; point to NCPOR for them.
+    const row = await db.station.create({ data: { ...s, sourceUrl: NCPOR_SITE } });
     stationIds[s.slug] = row.id;
   }
 

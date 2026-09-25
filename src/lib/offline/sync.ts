@@ -68,7 +68,8 @@ export function syncAll(opts: { fetchImpl?: typeof fetch; isOnline?: () => boole
             syncedAt: new Date().toISOString(),
             reviewStatus: body?.entry?.reviewStatus ?? "pending",
             lastError: undefined,
-            // The server has the photo now; keep a small local copy for the list thumbnail.
+            // The server has the photo now; the small thumbnail is enough on the device.
+            photo: undefined,
           });
           report.synced++;
         } else {

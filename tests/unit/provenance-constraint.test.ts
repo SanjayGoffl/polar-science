@@ -50,3 +50,24 @@ describe("AIContent provenance constraint", () => {
     expect(() => insert("rp", null, "poem")).toThrow(/CHECK constraint failed/);
   });
 });
+
+describe("content status constraints", () => {
+  const report = (status: string, url: string | null) =>
+    db
+      .prepare(`INSERT INTO Report (id, slug, expeditionId, title, type, authors, publishedOn, abstract, contentStatus, externalUrl) VALUES (?, ?, 'ex', 'R', 'publication', 'a', 0, 'x', ?, ?)`)
+      .run(Math.random().toString(36), Math.random().toString(36), status, url);
+
+  it("requires official reports to carry a source URL", () => {
+    expect(() => report("official", null)).toThrow(/CHECK constraint failed/);
+    expect(() => report("official", "https://example.org/report.pdf")).not.toThrow();
+    expect(() => report("illustrative", null)).not.toThrow();
+  });
+
+  it("rejects unknown content statuses", () => {
+    expect(() => report("verified-ish", "https://x")).toThrow(/CHECK constraint failed/);
+  });
+
+  it("rejects invalid field-entry review statuses", () => {
+    expect(() => db.prepare(`UPDATE FieldEntry SET reviewStatus = 'published' WHERE id = 'fe'`).run()).toThrow(/reviewStatus invalid/);
+  });
+});

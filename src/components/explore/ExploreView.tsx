@@ -92,14 +92,14 @@ export function ExploreView({ stations, expeditions, initialRegion, initialSelec
             Click a station on the map or a year on the timeline. Each one opens the expedition, its reports, and (where available) the full story.
           </p>
         </div>
-        <div role="tablist" aria-label="Region" className="flex gap-1 rounded-full bg-paper-2 p-1">
+        <div role="tablist" aria-label="Region" className="flex gap-1 rounded-full bg-paper-2 p-1 max-w-full overflow-x-auto">
           {(["all", "antarctica", "arctic", "himalaya"] as RegionView[]).map((r) => (
             <button
               key={r}
               role="tab"
               aria-selected={region === r}
               onClick={() => changeRegion(r)}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${
+              className={`px-3 sm:px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition ${
                 region === r ? "bg-white shadow text-ink" : "text-ink-2 hover:text-ink"
               }`}
             >
@@ -118,7 +118,7 @@ export function ExploreView({ stations, expeditions, initialRegion, initialSelec
             view={region}
             focus={focusStation ? { lat: focusStation.lat, lng: focusStation.lng, zoom: focusStation.region === "himalaya" ? 10 : 5 } : null}
           />
-          <div className="absolute left-3 bottom-3 z-[500] flex gap-3 rounded-lg bg-white/90 px-3 py-2 text-xs shadow">
+          <div className="absolute left-3 bottom-6 z-[500] hidden sm:flex gap-3 rounded-lg bg-white/90 px-3 py-2 text-xs shadow">
             {(Object.keys(REGIONS) as Region[]).map((r) => (
               <span key={r} className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: REGIONS[r].color }} />

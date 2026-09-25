@@ -94,13 +94,24 @@ function findingsFor(doc: SourceDocument, n: number) {
 }
 
 const sentence = (s: string) => (/[.!?…]$/.test(s.trim()) ? s.trim() : s.trim() + ".");
+/**
+ * Deterministic context trimming for hosted models: the intro plus the sections most likely
+ * to hold findings. Cuts prompt size (and cost) for captions, which only need one fact.
+ */
+export function focusSections(doc: SourceDocument, max = 3): SourceDocument {
+  if (doc.sections.length <= max) return doc;
+  const keep = new Set([doc.sections[0].id, ...findingsFor(doc, max - 1).map((p) => p.section.id)]);
+  return { ...doc, sections: doc.sections.filter((s) => keep.has(s.id)) };
+}
+
+const MODEL = "offline-extractive-v1";
+
 const campaignNoun = (doc: SourceDocument) =>
   /himalaya/i.test(doc.expedition) ? "India's Himalayan glacier research campaigns" : "India's polar science expeditions";
 
 export function createMockProvider(): AIProvider {
   return {
     name: "mock",
-    model: "offline-extractive-v1",
 
     async explain(doc, audience) {
       const intro = doc.sections[0];
@@ -119,13 +130,14 @@ export function createMockProvider(): AIProvider {
       const closing = sentences(last.body).slice(-1)[0];
       used.add(last.number);
 
-      return {
+      const draft = {
         headline: audience === "student" ? `What scientists learned: ${topic}` : topic,
         summary,
         keyPoints: findings.map((f) => sentence(simplify(f.s, audience))),
         whyItMatters: sentence(simplify(closing, audience)),
         usedSections: [...used],
       };
+      return { draft, model: MODEL };
     },
 
     async caption(doc) {
@@ -138,11 +150,12 @@ export function createMockProvider(): AIProvider {
         : /himalaya|chandra|glacier/i.test(doc.title) && !/antarctic/i.test(doc.title)
           ? "#Himalaya"
           : "#Antarctica";
-      return {
+      const draft = {
         caption: `🧊 New from ${doc.expedition}: ${short}`,
         hashtags: [region, "#NCPOR", "#PolarScience"],
         usedSections: [pick.section.number],
       };
+      return { draft, model: MODEL };
     },
   };
 }

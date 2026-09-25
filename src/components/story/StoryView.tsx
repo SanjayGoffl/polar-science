@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { PolarMap, type MapFocus } from "@/components/map";
 import { REPORT_TYPE_LABEL, regionColor, regionLabel, type RegionView } from "@/lib/regions";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
+import { SourceNotice } from "@/components/Provenance";
 import { Gallery } from "./Gallery";
 
 export interface StoryData {
@@ -16,6 +17,8 @@ export interface StoryData {
   region: string;
   summary: string;
   heroImage: string;
+  contentStatus: string;
+  sourceUrl: string | null;
   station: { slug: string; name: string; location: string; lat: number; lng: number; region: string };
   chapters: {
     id: string;
@@ -89,6 +92,9 @@ export function StoryView({ story }: { story: StoryData }) {
               Begin · {story.chapters.length} chapters ↓
             </a>
             <span>≈ 6 min read</span>
+          </div>
+          <div className="mt-6 max-w-2xl">
+            <SourceNotice status={story.contentStatus} sourceUrl={story.sourceUrl} what="story" tone="dark" />
           </div>
         </div>
       </header>

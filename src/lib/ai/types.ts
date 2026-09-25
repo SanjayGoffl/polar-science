@@ -1,5 +1,6 @@
 export type AIKind = "explanation" | "caption";
 export type Audience = "student" | "public" | "social";
+export type ProviderName = "openrouter" | "gemini" | "mock";
 
 /** A numbered piece of source text the model may cite. */
 export interface SourceSection {
@@ -31,9 +32,14 @@ export interface CaptionDraft {
   usedSections: string[];
 }
 
-export interface AIProvider {
-  name: "claude" | "mock";
+export interface Generated<T> {
+  draft: T;
+  /** The model that actually produced the text (may be a fallback model). */
   model: string;
-  explain(doc: SourceDocument, audience: "student" | "public"): Promise<ExplanationDraft>;
-  caption(doc: SourceDocument): Promise<CaptionDraft>;
+}
+
+export interface AIProvider {
+  name: ProviderName;
+  explain(doc: SourceDocument, audience: "student" | "public"): Promise<Generated<ExplanationDraft>>;
+  caption(doc: SourceDocument): Promise<Generated<CaptionDraft>>;
 }

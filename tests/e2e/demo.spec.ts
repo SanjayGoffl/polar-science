@@ -9,7 +9,11 @@ test("full demo path", async ({ page, context }) => {
   await expect(page).toHaveURL(/\/explore/);
 
   // Pick Bharati: its expeditions light up; open ISEA-43 from the panel
-  await page.getByRole("button", { name: /^Bharati/ }).first().click();
+  // Click the real map pin once the opening camera animation has finished.
+  const pin = page.locator('.leaflet-marker-icon[title="Bharati"]');
+  await expect(pin).toBeVisible();
+  await page.waitForTimeout(1500);
+  await pin.click();
   await expect(page.getByRole("heading", { name: "Bharati", level: 2 })).toBeVisible();
   await page.getByRole("button", { name: /ISEA-43/ }).first().click();
   await expect(page.getByRole("option", { name: /2023.*ISEA-43/ })).toHaveAttribute("aria-selected", "true");

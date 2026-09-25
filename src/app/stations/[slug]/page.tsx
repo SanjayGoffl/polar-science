@@ -58,6 +58,12 @@ export default async function StationPage({ params }: { params: Promise<{ slug: 
               <dd className="font-serif text-lg">{s.expeditions.length}</dd>
             </div>
           </dl>
+          {s.sourceUrl && (
+            <p className="mt-4 text-xs text-muted">
+              Station name, location and founding year are public facts. See{" "}
+              <a href={s.sourceUrl} target="_blank" rel="noreferrer" className="underline">NCPOR ↗</a>. Expedition content linked here is illustrative.
+            </p>
+          )}
 
           <h2 className="font-serif text-3xl mt-14 mb-2">Field notes</h2>
           <p className="text-sm text-muted mb-6">Logged at the station through the Field app, and published after NCPOR review.</p>

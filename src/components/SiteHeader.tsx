@@ -3,7 +3,7 @@ import { SearchBox } from "./SearchBox";
 
 const NAV = [
   { href: "/explore", label: "Explore" },
-  { href: "/expeditions/isea-43/story", label: "Stories" },
+  { href: "/stories", label: "Stories" },
   { href: "/field", label: "Field app" },
   { href: "/admin", label: "Review" },
 ];
@@ -29,7 +29,7 @@ export function SiteHeader() {
             NCPOR
           </span>
         </Link>
-        <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-ink-2">
+        <nav aria-label="Main" className="hidden md:flex items-center gap-5 text-sm font-medium text-ink-2">
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} className="hover:text-ink">
               {n.label}
@@ -40,12 +40,15 @@ export function SiteHeader() {
           <SearchBox compact />
         </div>
       </div>
-      <nav className="md:hidden flex gap-5 px-5 pb-2 text-sm font-medium text-ink-2 overflow-x-auto">
+      <nav aria-label="Main" className="md:hidden flex gap-5 px-5 pb-2 text-sm font-medium text-ink-2 overflow-x-auto">
         {NAV.map((n) => (
-          <Link key={n.href} href={n.href}>
+          <Link key={n.href} href={n.href} className="whitespace-nowrap">
             {n.label}
           </Link>
         ))}
+        <Link href="/search" className="whitespace-nowrap sm:hidden">
+          Search
+        </Link>
       </nav>
     </header>
   );

@@ -44,6 +44,8 @@ export default async function ReportPage({
         publishedOn: r.publishedOn.toISOString(),
         abstract: r.abstract,
         project: r.project?.title ?? null,
+        contentStatus: r.contentStatus,
+        externalUrl: r.externalUrl,
         expedition: { slug: r.expedition.slug, shortName: r.expedition.shortName, name: r.expedition.name, region: r.expedition.region, hasStory: r.expedition.hasStory },
         station: r.expedition.station.name,
         sections: r.sections.map((s) => ({ id: s.id, number: s.number, heading: s.heading, body: s.body })),

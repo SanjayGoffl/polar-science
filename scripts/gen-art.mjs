@@ -232,7 +232,7 @@ const plates = {
     layers: [
       { base: 520, amp: 160, rough: 0.6, color: "#8d94a8", snow: { depth: 70, color: "#f7f1ee" } },
       { base: 620, amp: 90, color: "#50586b", snow: { depth: 24, color: "#ece6e4", opacity: 0.7 },
-        after: station(300, 610, 1, "#2a2230", "hut") },
+        after: station(1180, 612, 1, "#2a2230", "hut") },
     ],
     sea: { y: 660, color: ["#e8b9a4", "#7d7f95"] },
     floeColor: "#fff",

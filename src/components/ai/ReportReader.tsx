@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { REPORT_TYPE_LABEL, regionColor } from "@/lib/regions";
+import { SourceNotice } from "@/components/Provenance";
 import { AIPanel } from "./AIPanel";
 
 export interface ReaderReport {
@@ -15,6 +16,8 @@ export interface ReaderReport {
   publishedOn: string;
   abstract: string;
   project: string | null;
+  contentStatus: string;
+  externalUrl: string | null;
   expedition: { slug: string; shortName: string; name: string; region: string; hasStory: boolean };
   station: string;
   sections: { id: string; number: string; heading: string; body: string }[];
@@ -42,7 +45,7 @@ export function ReportReader({
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 grid lg:grid-cols-[minmax(0,1fr)_420px] gap-10 items-start">
-      <article>
+      <article data-report-id={report.id}>
         <nav className="text-xs text-muted mb-6 flex flex-wrap gap-1.5" aria-label="Breadcrumb">
           <Link href="/explore" className="hover:text-ink">Explore</Link> /
           <Link href={`/expeditions/${report.expedition.slug}`} className="hover:text-ink">{report.expedition.shortName}</Link> /
@@ -67,7 +70,11 @@ export function ReportReader({
           </div>
         </dl>
 
-        <section className="mt-8 rounded-xl bg-paper-2 p-5">
+        <div className="mt-5">
+          <SourceNotice status={report.contentStatus} sourceUrl={report.externalUrl} what="report" />
+        </div>
+
+        <section className="mt-6 rounded-xl bg-paper-2 p-5">
           <h2 className="eyebrow mb-2">Abstract</h2>
           <p className="leading-relaxed text-ink-2">{report.abstract}</p>
         </section>
