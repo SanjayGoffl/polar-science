@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 // Needs the service worker, which is only registered in production builds.
 test.skip(process.env.E2E_PROD !== "1", "run with `npm run test:e2e:prod`");

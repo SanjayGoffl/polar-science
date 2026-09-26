@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const PNG_1PX = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
@@ -49,7 +50,7 @@ test("review API rejects anonymous callers, and regenerate is reviewer-only", as
 });
 
 test("a reviewer can correct AI wording; the approved version is what the public sees", async ({ page }) => {
-  await page.goto("/reports/kongsfjorden-atlantification");
+  await page.goto("/reports/first-scientific-expedition-to-arctic-pib-r70423");
   const reportId = await page.evaluate(async () => {
     // The page doesn't expose ids, so resolve via the generate endpoint using the slug's report id from the DOM data.
     return document.querySelector<HTMLElement>("[data-report-id]")?.dataset.reportId ?? "";
@@ -71,7 +72,7 @@ test("a reviewer can correct AI wording; the approved version is what the public
   const patch = await page.request.patch("/api/admin/review", { data: { kind: "ai", id: content.id, status: "approved", text: edited } });
   expect(patch.ok()).toBe(true);
 
-  await page.goto("/reports/kongsfjorden-atlantification?explain=public");
+  await page.goto("/reports/first-scientific-expedition-to-arctic-pib-r70423?explain=public");
   const panel = page.getByRole("complementary", { name: /AI explanation/ });
   await expect(panel.getByText("Reviewed by NCPOR")).toBeVisible({ timeout: 20_000 });
   await expect(panel.getByText(/edited by reviewer/)).toBeVisible();
@@ -84,7 +85,7 @@ test.describe("mobile", () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
   test("story chapter rail sits below the header and stays usable", async ({ page }) => {
-    await page.goto("/expeditions/isea-43/story");
+    await page.goto("/expeditions/isea-40/story");
     await page.getByRole("link", { name: /Begin/ }).click();
     const rail = page.getByRole("navigation", { name: "Chapters" });
     await expect(rail).toBeVisible();
@@ -110,7 +111,7 @@ test.describe("mobile", () => {
   });
 
   test("key pages have no horizontal overflow", async ({ page }) => {
-    for (const url of ["/", "/explore", "/stories", "/reports/isea-43-expedition-report", "/stations/bharati", "/search?q=ice", "/admin"]) {
+    for (const url of ["/", "/explore", "/stories", "/reports/india-marks-four-successful-decades-of-scientific-endeavourin-antarcti-pib-1712402", "/expeditions/isea-40/story", "/stories", "/stations/bharati", "/search?q=ice", "/admin"]) {
       await page.goto(url);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, url).toBeLessThanOrEqual(1);

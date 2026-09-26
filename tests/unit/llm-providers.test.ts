@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { getProviderChain } from "@/lib/ai";
 import { createGeminiClient, createOpenRouterClient, extractJson } from "@/lib/ai/llm";
-import { focusSections } from "@/lib/ai/mock";
+import { focusSections } from "@/lib/ai/offline";
 import { llmProvider } from "@/lib/ai/structured";
 import type { SourceDocument } from "@/lib/ai/types";
 
@@ -68,11 +68,11 @@ describe("Gemini provider", () => {
     const fetchImpl = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) =>
       new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ caption: "c", hashtags: ["x"], usedSections: [2] }) }] } }] })),
     );
-    const p = llmProvider(createGeminiClient({ apiKey: "g", model: "gemini-2.5-flash", fetchImpl }));
+    const p = llmProvider(createGeminiClient({ apiKey: "g", model: "gemini-flash-latest", fetchImpl }));
     const out = await p.caption(doc);
     expect(out.draft.usedSections).toEqual(["2"]);
     const [url, init] = fetchImpl.mock.calls[0];
-    expect(String(url)).toContain("models/gemini-2.5-flash:generateContent");
+    expect(String(url)).toContain("models/gemini-flash-latest:generateContent");
     expect((init!.headers as Record<string, string>)["x-goog-api-key"]).toBe("g");
     expect(JSON.parse(String(init!.body)).generationConfig.responseMimeType).toBe("application/json");
   });
@@ -81,17 +81,17 @@ describe("Gemini provider", () => {
 describe("provider chain", () => {
   it("defaults to OpenRouter, then Gemini, then offline", () => {
     const chain = getProviderChain({ OPENROUTER_API_KEY: "a", GEMINI_API_KEY: "b" } as unknown as NodeJS.ProcessEnv);
-    expect(chain.map((p) => p.name)).toEqual(["openrouter", "gemini", "mock"]);
+    expect(chain.map((p) => p.name)).toEqual(["openrouter", "gemini", "offline"]);
   });
 
   it("skips providers with no key", () => {
-    expect(getProviderChain({ AI_PROVIDER: "openrouter" } as unknown as NodeJS.ProcessEnv).map((p) => p.name)).toEqual(["mock"]);
+    expect(getProviderChain({ AI_PROVIDER: "openrouter" } as unknown as NodeJS.ProcessEnv).map((p) => p.name)).toEqual(["offline"]);
   });
 
-  it("honours AI_PROVIDER=gemini and AI_PROVIDER=mock", () => {
+  it("honours AI_PROVIDER=gemini and AI_PROVIDER=offline", () => {
     const env = { OPENROUTER_API_KEY: "a", GEMINI_API_KEY: "b" };
-    expect(getProviderChain({ ...env, AI_PROVIDER: "gemini" } as unknown as NodeJS.ProcessEnv).map((p) => p.name)).toEqual(["gemini", "openrouter", "mock"]);
-    expect(getProviderChain({ ...env, AI_PROVIDER: "mock" } as unknown as NodeJS.ProcessEnv).map((p) => p.name)).toEqual(["mock"]);
+    expect(getProviderChain({ ...env, AI_PROVIDER: "gemini" } as unknown as NodeJS.ProcessEnv).map((p) => p.name)).toEqual(["gemini", "openrouter", "offline"]);
+    expect(getProviderChain({ ...env, AI_PROVIDER: "offline" } as unknown as NodeJS.ProcessEnv).map((p) => p.name)).toEqual(["offline"]);
   });
 });
 

@@ -1,24 +1,21 @@
 export type Region = "antarctica" | "arctic" | "himalaya";
 export type RegionView = Region | "all";
 
-export const REGIONS: Record<Region, { label: string; color: string; blurb: string; image: string }> = {
+export const REGIONS: Record<Region, { label: string; color: string; blurb: string }> = {
   antarctica: {
     label: "Antarctica",
     color: "#2c5d7c",
-    blurb: "Four decades of Indian expeditions, from Dakshin Gangotri to Bharati and Maitri.",
-    image: "/images/art/bharati.svg",
+    blurb: "Indian expeditions since 1981. Two research stations operate today: Maitri and Bharati.",
   },
   arctic: {
     label: "Arctic",
     color: "#6d4a86",
-    blurb: "Himadri station in Svalbard, watching a fjord where the Arctic is warming fastest.",
-    image: "/images/art/himadri.svg",
+    blurb: "Himadri at Ny-Ålesund, Svalbard, since 2008, with winter expeditions since December 2023.",
   },
   himalaya: {
     label: "Himalaya",
     color: "#a65a2e",
-    blurb: "The ‘Third Pole’: glaciers of the Chandra basin that feed India’s rivers.",
-    image: "/images/art/himansh.svg",
+    blurb: "Himansh, above 4,000 m in the Chandra basin, where NCPOR monitors six glaciers.",
   },
 };
 
@@ -34,7 +31,11 @@ export const regionColor = (r: string) => REGIONS[r as Region]?.color ?? "#10202
 export const regionLabel = (r: string) => REGIONS[r as Region]?.label ?? r;
 
 export const REPORT_TYPE_LABEL: Record<string, string> = {
+  "press-release": "Press release",
+  "parliament-answer": "Parliament answer",
+  "station-profile": "Station profile",
   "expedition-report": "Expedition report",
   publication: "Publication",
-  "technical-note": "Technical note",
 };
+
+export const ENTRY_KIND_LABEL: Record<string, string> = { expedition: "Expedition", programme: "Programme", milestone: "Milestone" };

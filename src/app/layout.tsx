@@ -3,6 +3,7 @@ import { Fraunces, Inter } from "next/font/google";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
+import { ReopenTourButton, WelcomeTour } from "@/components/WelcomeTour";
 
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", axes: ["opsz"] });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -32,21 +33,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div>
               <p className="font-serif text-lg text-ink mb-2">Polar Stories</p>
               <p className="max-w-xl">
-                A public outreach layer for the National Centre for Polar and Ocean Research (NCPOR), Ministry of Earth Sciences.
-                It links to NCPOR&apos;s official data holdings at the{" "}
-                <a className="underline" href="https://npdc.ncaor.gov.in/" target="_blank" rel="noreferrer">
+                An outreach guide to the work of the National Centre for Polar and Ocean Research (NCPOR), Ministry of Earth Sciences. Text is
+                quoted from official sources, with links to each original. Datasets are held by the{" "}
+                <a className="underline" href="https://npdc.ncpor.res.in/npdc/homepage.action" target="_blank" rel="noreferrer">
                   National Polar Data Center
-                </a>{" "}
-                rather than replacing them.
+                </a>
+                .
               </p>
             </div>
-            <p className="md:text-right">
-              <strong className="text-ink-2">Prototype notice:</strong> station names and locations are real. Expedition narratives,
-              reports, figures and people shown here are illustrative sample data standing in for a future NPDC / repository
-              integration. SIH 2026 · PS 26063.
-            </p>
+            <div className="md:text-right space-y-1">
+              <p>Photos: Wikimedia Commons contributors and Government of India, under the licences shown with each image.</p>
+              <p>
+                <ReopenTourButton />
+              </p>
+            </div>
           </div>
         </footer>
+        <WelcomeTour />
       </body>
     </html>
   );

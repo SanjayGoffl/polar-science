@@ -11,7 +11,6 @@ async function load(slug: string) {
     include: {
       sections: { orderBy: { order: "asc" } },
       expedition: { include: { station: true } },
-      project: true,
     },
   });
 }
@@ -39,15 +38,13 @@ export default async function ReportPage({
         slug: r.slug,
         title: r.title,
         type: r.type,
-        authors: r.authors,
-        venue: r.venue,
+        publisher: r.publisher,
+        retrievedAt: r.retrievedAt.toISOString(),
         publishedOn: r.publishedOn.toISOString(),
         abstract: r.abstract,
-        project: r.project?.title ?? null,
-        contentStatus: r.contentStatus,
         externalUrl: r.externalUrl,
         expedition: { slug: r.expedition.slug, shortName: r.expedition.shortName, name: r.expedition.name, region: r.expedition.region, hasStory: r.expedition.hasStory },
-        station: r.expedition.station.name,
+        station: r.expedition.station?.name ?? null,
         sections: r.sections.map((s) => ({ id: s.id, number: s.number, heading: s.heading, body: s.body })),
       }}
       autoExplain={sp.explain === "student" || sp.explain === "public" ? sp.explain : null}

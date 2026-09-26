@@ -148,7 +148,7 @@ export function FieldApp({ stations }: { stations: Station[] }) {
       <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted">
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <input type="checkbox" checked={simulateOffline} onChange={(e) => setSimulateOffline(e.target.checked)} className="accent-accent" />
-          Simulate no connection (for demos). A real outage (airplane mode or DevTools → Offline) works the same way.
+          Test offline mode: behaves exactly like losing the connection (airplane mode or DevTools → Offline).
         </label>
         <span>
           Offline page cache:{" "}

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { db } from "@/lib/db";
 import { createGeminiClient, createOpenRouterClient } from "./llm";
-import { createMockProvider, focusSections } from "./mock";
+import { createOfflineProvider, focusSections } from "./offline";
 import { PROMPT_VERSION } from "./prompts";
 import { llmProvider } from "./structured";
 import type { AIKind, AIProvider, SourceDocument } from "./types";
@@ -13,7 +13,7 @@ export type ExplainAudience = "student" | "public";
  * Ordered provider chain from env:
  *   AI_PROVIDER=openrouter (default) → OpenRouter [OPENROUTER_MODEL, OPENROUTER_FALLBACK_MODEL] → Gemini (if keyed) → offline
  *   AI_PROVIDER=gemini                → Gemini → OpenRouter (if keyed) → offline
- *   AI_PROVIDER=mock                  → offline only
+ *   AI_PROVIDER=offline               → offline summariser only (no network)
  * Providers without an API key are skipped, so the app always works.
  */
 export function getProviderChain(env: NodeJS.ProcessEnv = process.env): AIProvider[] {
@@ -30,12 +30,12 @@ export function getProviderChain(env: NodeJS.ProcessEnv = process.env): AIProvid
       )
     : null;
   const gemini = env.GEMINI_API_KEY
-    ? llmProvider(createGeminiClient({ apiKey: env.GEMINI_API_KEY, model: env.GEMINI_MODEL || "gemini-2.5-flash" }))
+    ? llmProvider(createGeminiClient({ apiKey: env.GEMINI_API_KEY, model: env.GEMINI_MODEL || "gemini-flash-latest" }))
     : null;
 
   if (wanted === "openrouter") chain.push(...([openrouter, gemini].filter(Boolean) as AIProvider[]));
   else if (wanted === "gemini") chain.push(...([gemini, openrouter].filter(Boolean) as AIProvider[]));
-  chain.push(createMockProvider());
+  chain.push(createOfflineProvider());
   return chain;
 }
 
@@ -148,7 +148,7 @@ async function generate(opts: {
         });
         return tx.aIContent.findUniqueOrThrow({ where: { id: row.id }, include: aiInclude });
       });
-      const fallbackReason = failures.length && provider.name === "mock" ? "Live AI unavailable" : null;
+      const fallbackReason = failures.length && provider.name === "offline" ? "Live AI unavailable" : null;
       if (failures.length) console.warn(`[ai] used ${provider.name} after: ${failures.join(" || ")}`);
       return { content, cached: false, fallbackReason };
     } catch (err) {

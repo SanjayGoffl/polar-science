@@ -20,7 +20,7 @@ export function LoginForm() {
         <button className="btn btn-primary w-full justify-center" disabled={pending}>
           {pending ? "Checking…" : "Sign in"}
         </button>
-        <p className="text-xs text-muted">Prototype: a single shared passcode set by ADMIN_PASSCODE (default “ncpor2026”).</p>
+        <p className="text-xs text-muted">For NCPOR reviewers. Access uses the passcode configured on the server.</p>
       </form>
     </div>
   );

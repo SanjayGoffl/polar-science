@@ -1,44 +1,50 @@
 import Image from "next/image";
 import Link from "next/link";
-import { StatusBadge } from "@/components/Provenance";
 import { SearchBox } from "@/components/SearchBox";
 import { db } from "@/lib/db";
+import { getLiveReadings, LIVE_SOURCE_URL } from "@/lib/liveWeather";
+import { stationPhotos } from "@/lib/queries";
 import { REGIONS, regionColor, regionLabel, type Region } from "@/lib/regions";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [featured, stories, counts, latestNotes] = await Promise.all([
+  const [featured, stories, stations, counts, notes, portals, photos, live] = await Promise.all([
     db.expedition.findFirst({ where: { featured: true }, include: { station: true } }),
-    db.expedition.findMany({ where: { hasStory: true }, include: { station: true }, orderBy: { year: "desc" } }),
-    Promise.all([db.expedition.count(), db.station.count(), db.report.count()]),
-    db.fieldEntry.findMany({
-      where: { reviewStatus: "approved" },
-      orderBy: { capturedAt: "desc" },
-      take: 3,
-      include: { station: true },
-    }),
+    db.expedition.findMany({ where: { hasStory: true }, include: { station: true, _count: { select: { chapters: true } } }, orderBy: { year: "desc" } }),
+    db.station.findMany({ orderBy: { name: "asc" } }),
+    Promise.all([db.expedition.count(), db.report.count(), db.media.count()]),
+    db.fieldEntry.findMany({ where: { reviewStatus: "approved" }, orderBy: { capturedAt: "desc" }, take: 3, include: { station: true } }),
+    db.resource.findMany({ where: { stationId: null, expeditionId: null }, orderBy: { title: "asc" } }),
+    stationPhotos(),
+    getLiveReadings(),
   ]);
-  const regionCounts = await db.expedition.groupBy({ by: ["region"], _count: true });
+  const heroPhoto = featured?.stationId ? photos.get(featured.stationId) : undefined;
+  const regionPhoto = (r: Region) => {
+    const s = stations.find((x) => x.region === r && photos.has(x.id));
+    return s ? photos.get(s.id) : undefined;
+  };
+  const stationByLive = new Map(stations.filter((s) => s.liveKey).map((s) => [s.liveKey!, s]));
 
   return (
     <>
-      {/* Hero: featured expedition */}
       {featured && (
-        <section className="relative isolate overflow-hidden text-white">
-          <Image src={featured.heroImage} alt="" fill priority className="object-cover -z-10" />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0b1822]/85 via-[#0b1822]/55 to-transparent" />
+        <section className="relative isolate overflow-hidden text-white" aria-labelledby="hero-h">
+          <div className="absolute inset-0 -z-10">
+            {heroPhoto ? (
+              <Image src={heroPhoto.url} alt={heroPhoto.altText} fill priority className="object-cover" sizes="100vw" />
+            ) : (
+              <div className="absolute inset-0 bg-antarctica" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0b1822]/90 via-[#0b1822]/60 to-[#0b1822]/10" />
+          </div>
           <div className="mx-auto max-w-6xl px-5 py-24 md:py-32">
-            <p className="eyebrow !text-white/75 flex flex-wrap items-center gap-2">
-              Featured story · {featured.season}
-              <StatusBadge status={featured.contentStatus} className="bg-white/90" />
-            </p>
-            <h1 className="font-serif text-5xl md:text-7xl leading-[1.02] tracking-tight max-w-3xl mt-3">
-              The summer the sea ice came up short.
+            <p className="eyebrow !text-white/75">Featured story · {featured.season}</p>
+            <h1 id="hero-h" className="font-serif text-5xl md:text-7xl leading-[1.02] tracking-tight max-w-3xl mt-3">
+              Four decades on the ice.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-white/85">
-              Follow India&apos;s {featured.shortName} expedition to {featured.station.name} station: why they went, what they
-              measured, and what they found.
+              Follow the {featured.name}, told through the Government of India&apos;s own record of the voyage.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={`/expeditions/${featured.slug}/story`} className="btn btn-accent text-base">
@@ -48,6 +54,11 @@ export default async function Home() {
                 Explore the map
               </Link>
             </div>
+            {heroPhoto && (
+              <p className="mt-10 text-[11px] text-white/60">
+                Photo: {heroPhoto.title} · {heroPhoto.author} · {heroPhoto.license}
+              </p>
+            )}
           </div>
         </section>
       )}
@@ -57,13 +68,12 @@ export default async function Home() {
         <div className="card p-6 md:p-8 shadow-xl grid md:grid-cols-[1.1fr_1fr] gap-8 items-center">
           <div>
             <p className="font-serif text-2xl leading-snug">
-              NCPOR already has the data. This is the layer that makes it{" "}
-              <em className="text-accent not-italic">discoverable, understandable and shareable</em>.
+              India&apos;s polar and Himalayan research,{" "}
+              <em className="text-accent not-italic">explained simply and linked to the source</em>.
             </p>
             <p className="text-sm text-muted mt-3">
-              {counts[0]} expeditions · {counts[1]} stations & sites · {counts[2]} reports and publications. Scientific datasets stay
-              at the{" "}
-              <a href="https://npdc.ncaor.gov.in/" target="_blank" rel="noreferrer" className="underline">
+              {counts[0]} expeditions and milestones · {counts[1]} official documents · {counts[2]} licensed photos. Scientific datasets stay at the{" "}
+              <a href="https://npdc.ncpor.res.in/npdc/homepage.action" target="_blank" rel="noreferrer" className="underline">
                 National Polar Data Center ↗
               </a>
             </p>
@@ -71,6 +81,35 @@ export default async function Home() {
           <SearchBox />
         </div>
       </section>
+
+      {/* Live conditions */}
+      {live.length > 0 && (
+        <section className="mx-auto max-w-6xl px-5 mt-14" aria-labelledby="live-h">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+            <h2 id="live-h" className="eyebrow">Right now at the stations</h2>
+            <a href={LIVE_SOURCE_URL} target="_blank" rel="noreferrer" className="text-xs text-muted underline">
+              Live data from NCPOR ↗
+            </a>
+          </div>
+          <ul className="grid grid-cols-2 md:grid-cols-4 gap-3" data-testid="live-strip">
+            {live.map((r) => {
+              const s = stationByLive.get(r.key);
+              return (
+                <li key={r.key} className="card p-4">
+                  <p className="text-xs text-muted">{r.label}</p>
+                  <p className="font-serif text-3xl mt-1">{r.tempC.toFixed(1)}°C</p>
+                  <p className="text-[11px] text-muted mt-1">{r.observed}</p>
+                  {s && (
+                    <Link href={`/stations/${s.slug}`} className="text-xs font-semibold underline underline-offset-2 mt-2 inline-block">
+                      About {s.name} →
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* Regions */}
       <section className="mx-auto max-w-6xl px-5 mt-20" aria-labelledby="regions-h">
@@ -80,19 +119,18 @@ export default async function Home() {
         </h2>
         <div className="grid md:grid-cols-3 gap-5">
           {(Object.keys(REGIONS) as Region[]).map((r) => {
-            const n = regionCounts.find((c) => c.region === r)?._count ?? 0;
+            const p = regionPhoto(r);
             return (
-              <Link
-                key={r}
-                href={`/explore?region=${r}`}
-                className="group relative isolate overflow-hidden rounded-2xl aspect-[4/5] flex flex-col justify-end p-6 text-white"
-              >
-                <Image src={REGIONS[r].image} alt="" fill className="object-cover -z-10 transition duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-                <span className="eyebrow !text-white/80">
-                  {n} expedition{n === 1 ? "" : "s"}
-                </span>
-                <h3 className="font-serif text-4xl mt-1">{REGIONS[r].label}</h3>
+              <Link key={r} href={`/explore?region=${r}`} className="group relative isolate overflow-hidden rounded-2xl aspect-[4/5] flex flex-col justify-end p-6 text-white">
+                <div className="absolute inset-0 -z-10">
+                  {p ? (
+                    <Image src={p.url} alt={p.altText} fill className="object-cover transition duration-700 group-hover:scale-105" sizes="(min-width:768px) 33vw, 100vw" />
+                  ) : (
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${REGIONS[r].color}, #07121a)` }} />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+                </div>
+                <h3 className="font-serif text-4xl">{REGIONS[r].label}</h3>
                 <p className="text-sm text-white/85 mt-2">{REGIONS[r].blurb}</p>
                 <span className="mt-4 text-sm font-semibold">Open on the map →</span>
               </Link>
@@ -103,49 +141,42 @@ export default async function Home() {
 
       {/* Stories */}
       <section className="mx-auto max-w-6xl px-5 mt-24" aria-labelledby="stories-h">
-        <div className="flex items-end justify-between mb-8">
+        <div className="flex items-end justify-between mb-8 gap-4">
           <div>
-            <p className="eyebrow">Expedition stories</p>
+            <p className="eyebrow">Stories</p>
             <h2 id="stories-h" className="font-serif text-4xl tracking-tight">
               Science told chapter by chapter
             </h2>
           </div>
-          <Link href="/explore" className="text-sm font-semibold underline underline-offset-4 hidden sm:block">
-            All expeditions →
+          <Link href="/stories" className="text-sm font-semibold underline underline-offset-4 shrink-0">
+            All stories →
           </Link>
         </div>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           {stories.map((s) => (
-            <Link key={s.id} href={`/expeditions/${s.slug}/story`} className="group card overflow-hidden flex flex-col">
-              <div className="relative aspect-[16/9]">
-                <Image src={s.heroImage} alt="" fill className="object-cover transition duration-700 group-hover:scale-105" />
-              </div>
-              <div className="p-6">
-                <p className="eyebrow flex flex-wrap items-center gap-2" style={{ color: regionColor(s.region) }}>
-                  {regionLabel(s.region)} · {s.station.name} · {s.year}
-                  <StatusBadge status={s.contentStatus} />
-                </p>
-                <h3 className="font-serif text-2xl mt-1 leading-snug">{s.name}</h3>
-                <p className="text-sm text-ink-2 mt-2">{s.summary}</p>
-                <p className="mt-4 text-sm font-semibold text-accent">8 chapters · Read the story →</p>
-              </div>
+            <Link key={s.id} href={`/expeditions/${s.slug}/story`} className="group card p-6 flex flex-col hover:border-ink">
+              <p className="eyebrow" style={{ color: regionColor(s.region) }}>
+                {regionLabel(s.region)}
+                {s.station ? ` · ${s.station.name}` : ""}
+              </p>
+              <h3 className="font-serif text-2xl mt-2 leading-snug">{s.name}</h3>
+              <p className="text-sm text-ink-2 mt-2 line-clamp-3">{s.summary}</p>
+              <p className="mt-auto pt-4 text-sm font-semibold text-accent">{s._count.chapters} chapters · Read →</p>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* From the field */}
-      {latestNotes.length > 0 && (
+      {/* Field notes */}
+      {notes.length > 0 && (
         <section className="mx-auto max-w-6xl px-5 mt-24" aria-labelledby="field-h">
-          <p className="eyebrow">Live from the field</p>
+          <p className="eyebrow">From the field</p>
           <h2 id="field-h" className="font-serif text-4xl tracking-tight mb-2">
             Field notes
           </h2>
-          <p className="text-ink-2 mb-8 max-w-2xl">
-            Logged by scientists at the stations, even without a connection, and published after review.
-          </p>
+          <p className="text-ink-2 mb-8 max-w-2xl">Logged by researchers at the stations, even without a connection, and published after review.</p>
           <div className="grid md:grid-cols-3 gap-5">
-            {latestNotes.map((n) => (
+            {notes.map((n) => (
               <Link key={n.id} href={`/stations/${n.station.slug}`} className="card p-5 hover:border-ink transition">
                 <p className="eyebrow" style={{ color: regionColor(n.station.region) }}>
                   {n.station.name} · {n.activity}
@@ -157,6 +188,30 @@ export default async function Home() {
               </Link>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Official data */}
+      {portals.length > 0 && (
+        <section className="mx-auto max-w-6xl px-5 mt-24" aria-labelledby="data-h">
+          <p className="eyebrow">For researchers</p>
+          <h2 id="data-h" className="font-serif text-4xl tracking-tight mb-2">
+            Official data portals
+          </h2>
+          <p className="text-ink-2 mb-8 max-w-2xl">This site explains and links. The datasets themselves live with NCPOR and the National Polar Data Center.</p>
+          <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {portals.map((r) => (
+              <li key={r.id}>
+                <a href={r.url} target="_blank" rel="noreferrer" className="card p-5 block h-full hover:border-ink">
+                  <span className="block text-[10px] font-bold uppercase tracking-widest text-muted">
+                    {r.kind.replaceAll("-", " ")} · {r.publisher}
+                  </span>
+                  <span className="block font-semibold mt-1">{r.title} ↗</span>
+                  <span className="block text-sm text-ink-2 mt-1">{r.description}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
     </>

@@ -79,7 +79,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             {expeditions.map((e) => (
               <li key={e.id}>
                 <Link href={e.hasStory ? `/expeditions/${e.slug}/story` : `/expeditions/${e.slug}`} className="card p-4 block hover:border-ink">
-                  <span className="text-xs text-muted">{e.year} · {e.station.name}</span>
+                  <span className="text-xs text-muted">{e.year}{e.station ? ` · ${e.station.name}` : ""}</span>
                   <span className="block font-serif text-xl">{e.name}</span>
                   <span className="block text-sm text-ink-2">{e.summary}</span>
                 </Link>

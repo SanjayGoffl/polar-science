@@ -6,7 +6,18 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { PolarMap } from "@/components/map";
 import { ExpeditionTimeline } from "@/components/timeline/ExpeditionTimeline";
-import { REGIONS, regionColor, regionLabel, type Region, type RegionView } from "@/lib/regions";
+import { ENTRY_KIND_LABEL, REGIONS, regionColor, regionLabel, type Region, type RegionView } from "@/lib/regions";
+
+function Photo({ photo, region }: { photo: { url: string; alt: string; credit: string } | null; region: string }) {
+  return photo ? (
+    <>
+      <Image src={photo.url} alt={photo.alt} fill className="object-cover" sizes="380px" />
+      <span className="absolute right-2 bottom-2 rounded bg-black/55 px-1.5 py-0.5 text-[9px] text-white/85">{photo.credit}</span>
+    </>
+  ) : (
+    <span className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${regionColor(region)}, #07121a)` }} />
+  );
+}
 
 export interface ExploreStation {
   id: string;
@@ -18,8 +29,8 @@ export interface ExploreStation {
   lng: number;
   location: string;
   description: string;
-  heroImage: string;
-  established: number | null;
+  photo: { url: string; alt: string; credit: string } | null;
+  established: string | null;
 }
 
 export interface ExploreExpedition {
@@ -28,11 +39,11 @@ export interface ExploreExpedition {
   shortName: string;
   name: string;
   year: number;
-  season: string;
+  season: string | null;
   region: string;
-  stationId: string;
+  kind: string;
+  stationId: string | null;
   summary: string;
-  heroImage: string;
   hasStory: boolean;
   reportCount: number;
 }
@@ -126,7 +137,7 @@ export function ExploreView({ stations, expeditions, initialRegion, initialSelec
               </span>
             ))}
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full border-2 border-antarctica bg-white" /> Historic
+              <span className="w-2.5 h-2.5 rounded-full border-2 border-antarctica bg-white" /> Historic base
             </span>
           </div>
         </div>
@@ -136,19 +147,19 @@ export function ExploreView({ stations, expeditions, initialRegion, initialSelec
           {selStation && (
             <div key={selStation.id} className="fade-in flex flex-col h-full">
               <div className="relative h-40">
-                <Image src={selStation.heroImage} alt="" fill className="object-cover" />
+                <Photo photo={selStation.photo} region={selStation.region} />
                 <span
                   className="absolute left-3 top-3 text-[10px] font-bold uppercase tracking-wider text-white rounded px-2 py-1"
                   style={{ background: regionColor(selStation.region) }}
                 >
-                  {regionLabel(selStation.region)} · {selStation.kind === "field-site" ? "Field site" : selStation.kind === "historic" ? "Historic base" : "Station"}
+                  {regionLabel(selStation.region)} · {selStation.kind === "historic" ? "Historic base" : "Station"}
                 </span>
               </div>
               <div className="p-5 flex-1 flex flex-col">
                 <h2 className="font-serif text-2xl">{selStation.name}</h2>
                 <p className="text-xs text-muted mb-3">
                   {selStation.location}
-                  {selStation.established ? ` · since ${selStation.established}` : ""}
+                  {selStation.established ? ` · ${selStation.established}` : ""}
                 </p>
                 <p className="text-sm text-ink-2 leading-relaxed">{selStation.description}</p>
                 <p className="eyebrow mt-5 mb-2">Expeditions here</p>
@@ -173,17 +184,17 @@ export function ExploreView({ stations, expeditions, initialRegion, initialSelec
           {selExpedition && (
             <div key={selExpedition.id} className="fade-in flex flex-col h-full">
               <div className="relative h-40">
-                <Image src={selExpedition.heroImage} alt="" fill className="object-cover" />
+                <Photo photo={(selExpedition.stationId && stationById.get(selExpedition.stationId)?.photo) || null} region={selExpedition.region} />
                 <span className="absolute left-3 top-3 text-[10px] font-bold uppercase tracking-wider text-white rounded px-2 py-1" style={{ background: regionColor(selExpedition.region) }}>
-                  {selExpedition.season}
+                  {ENTRY_KIND_LABEL[selExpedition.kind]} · {selExpedition.season ?? selExpedition.year}
                 </span>
               </div>
               <div className="p-5 flex-1 flex flex-col">
-                <p className="eyebrow">{stationById.get(selExpedition.stationId)?.name}</p>
+                <p className="eyebrow">{selExpedition.stationId ? stationById.get(selExpedition.stationId)?.name : regionLabel(selExpedition.region)}</p>
                 <h2 className="font-serif text-2xl leading-tight">{selExpedition.name}</h2>
                 <p className="text-sm text-ink-2 leading-relaxed mt-3">{selExpedition.summary}</p>
                 <p className="text-xs text-muted mt-3">
-                  {selExpedition.reportCount} report{selExpedition.reportCount === 1 ? "" : "s"} & publications
+                  {selExpedition.reportCount} official source document{selExpedition.reportCount === 1 ? "" : "s"}
                 </p>
                 <div className="mt-auto pt-5 flex flex-wrap gap-2">
                   {selExpedition.hasStory && (
@@ -212,7 +223,7 @@ export function ExploreView({ stations, expeditions, initialRegion, initialSelec
             shortName: e.shortName,
             year: e.year,
             region: e.region,
-            stationName: stationById.get(e.stationId)?.name ?? "",
+            stationName: e.stationId ? stationById.get(e.stationId)?.name ?? "" : regionLabel(e.region),
             hasStory: e.hasStory,
           }))}
           activeId={selExpedition?.id}
@@ -229,7 +240,7 @@ function IntroPanel({ stations, onPick }: { stations: ExploreStation[]; onPick: 
     <div className="p-6 flex flex-col h-full">
       <p className="eyebrow mb-2">Start here</p>
       <h2 className="font-serif text-2xl leading-snug">Pick a place on the map, or a year on the timeline.</h2>
-      <p className="text-sm text-ink-2 mt-3">India has run research stations at both poles and in the high Himalaya since 1983.</p>
+      <p className="text-sm text-ink-2 mt-3">India has sent expeditions to Antarctica since 1981 and to the Arctic since 2007, and has run a Himalayan research station since 2016.</p>
       <ul className="mt-5 space-y-1.5">
         {stations.map((s) => (
           <li key={s.id}>

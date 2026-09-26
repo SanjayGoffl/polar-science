@@ -40,7 +40,7 @@ export default async function AdminPage() {
       at: a.generatedAt.toISOString(),
       title: a.kind === "caption" ? "Social caption" : `Plain-language explanation · ${a.audience === "student" ? "students" : "general public"}`,
       body: a.text,
-      meta: `${a.provider === "mock" ? "Offline summariser" : `${a.provider === "gemini" ? "Gemini" : "OpenRouter"} · ${a.model}`} · generated ${a.generatedAt.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}${a.sourceReport?.contentStatus === "official" ? "" : " · source is illustrative sample"}`,
+      meta: `${a.provider === "offline" ? "Offline summariser" : `${a.provider === "gemini" ? "Gemini" : "OpenRouter"} · ${a.model}`} · generated ${a.generatedAt.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`,
       edited: a.editedByReviewer,
       photoUrl: null,
       source: a.sourceReport

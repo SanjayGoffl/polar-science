@@ -1,6 +1,6 @@
 export type AIKind = "explanation" | "caption";
 export type Audience = "student" | "public" | "social";
-export type ProviderName = "openrouter" | "gemini" | "mock";
+export type ProviderName = "openrouter" | "gemini" | "offline";
 
 /** A numbered piece of source text the model may cite. */
 export interface SourceSection {

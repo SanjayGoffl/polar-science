@@ -1,6 +1,12 @@
-// NCPOR Polar Outreach Portal — data model
-// Provenance rule: every AIContent row must point at exactly one source
-// (a Report or a FieldEntry). Enforced by a CHECK constraint in the migration.
+// Polar Stories — data model
+//
+// Source content (stations, expeditions, documents, media, resources) is imported from
+// official snapshots in data/sources and is identified by stable natural keys, so a re-sync
+// updates rows in place instead of duplicating them. User content (field entries) and
+// AI output are never touched by a sync.
+//
+// Provenance rules enforced in SQL (see migrations): every AIContent row points at exactly
+// one source; official documents must carry their source URL.
 
 generator client {
   provider = "prisma-client"
@@ -16,146 +22,132 @@ model Station {
   slug         String       @unique
   name         String
   region       String // antarctica | arctic | himalaya
-  kind         String // station | field-site | historic
+  kind         String // station | historic
   lat          Float
   lng          Float
-  established  Int?
+  established  String? // as stated by the source, e.g. "1 July 2008"
+  elevation    String?
   location     String
   description  String
-  heroImage    String
-  sourceUrl    String? // official page backing the station facts
+  sourceUrl    String // official page backing the facts above
+  liveKey      String? // key on data.ncpor.res.in for live weather
   expeditions  Expedition[]
+  media        Media[]
+  resources    Resource[]
   fieldEntries FieldEntry[]
 }
 
+/// An expedition, a long-running programme, or a milestone (e.g. a station opening).
 model Expedition {
-  id          String             @id @default(cuid())
-  slug        String             @unique
-  name        String
-  shortName   String
-  number      Int?
-  year        Int
-  season      String
-  region      String
-  stationId   String
-  station     Station            @relation(fields: [stationId], references: [id])
-  lat         Float
-  lng         Float
-  summary     String
-  heroImage   String
-  featured    Boolean            @default(false)
-  contentStatus String           @default("illustrative") // illustrative | official
-  sourceUrl   String?
-  hasStory    Boolean            @default(false)
-  chapters    StoryChapter[]
-  projects    Project[]
-  reports     Report[]
-  media       Media[]
-  members     ExpeditionMember[]
-  dataProducts DataProduct[]
+  id        String         @id @default(cuid())
+  slug      String         @unique
+  kind      String         @default("expedition") // expedition | programme | milestone
+  name      String
+  shortName String
+  number    Int?
+  year      Int
+  season    String?
+  region    String
+  stationId String? // null for milestones that predate any station
+  station   Station?       @relation(fields: [stationId], references: [id])
+  summary   String
+  sourceUrl String
+  featured  Boolean        @default(false)
+  hasStory  Boolean        @default(false)
+  chapters  StoryChapter[]
+  reports   Report[]
+  media     Media[]
+  resources Resource[]
 }
 
+/// One step of an Expedition Story. Text is quoted from a source document section.
 model StoryChapter {
-  id           String     @id @default(cuid())
-  expeditionId String
-  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
-  order        Int
-  kind         String // why | what | where | who | found | data | publications | media
-  eyebrow      String
-  title        String
-  body         String
-  // optional map focus for the sticky map
-  lat          Float?
-  lng          Float?
-  zoom         Int?
-  image        String?
-  stats        String? // JSON array of {label, value}
+  id              String     @id @default(cuid())
+  expeditionId    String
+  expedition      Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+  order           Int
+  kind            String // why | what | where | who | found | data | publications | media
+  title           String
+  body            String
+  sourceReportId  String?
+  sourceReport    Report?    @relation(fields: [sourceReportId], references: [id], onDelete: SetNull)
+  sourceSection   String? // section number within the source document
+  lat             Float?
+  lng             Float?
+  zoom            Int?
+  mediaId         String?
 }
 
-model Project {
-  id           String     @id @default(cuid())
-  expeditionId String
-  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
-  title        String
-  topic        String
-  lead         String
-  summary      String
-  reports      Report[]
-}
-
-model Person {
-  id          String             @id @default(cuid())
-  name        String
-  institution String
-  expertise   String
-  memberships ExpeditionMember[]
-}
-
-model ExpeditionMember {
-  expeditionId String
-  personId     String
-  role         String
-  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
-  person       Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
-
-  @@id([expeditionId, personId])
-}
-
+/// An official source document (press release, report, publication), stored section by section.
 model Report {
-  id           String          @id @default(cuid())
-  slug         String          @unique
-  expeditionId String
-  expedition   Expedition      @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
-  projectId    String?
-  project      Project?        @relation(fields: [projectId], references: [id])
-  title        String
-  type         String // expedition-report | publication | technical-note
-  authors      String
-  venue        String?
-  publishedOn  DateTime
-  abstract     String
-  externalUrl  String?
-  contentStatus String         @default("illustrative") // illustrative | official
-  sourceSystem String?         // e.g. "npdc", "dspace", "ncpor-web" for future imports
-  sourceId     String?         // record id in that system
-  updatedAt    DateTime        @default(now()) @updatedAt
-  sections     ReportSection[]
-  aiContent    AIContent[]
+  id            String          @id @default(cuid())
+  slug          String          @unique
+  expeditionId  String
+  expedition    Expedition      @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+  title         String
+  type          String // press-release | expedition-report | publication | parliament-answer
+  publisher     String
+  authors       String?
+  publishedOn   DateTime
+  abstract      String
+  externalUrl   String
+  contentStatus String          @default("official") // official | community
+  sourceSystem  String // pib | ncpor | npdc | dspace
+  sourceId      String
+  contentHash   String
+  retrievedAt   DateTime
+  updatedAt     DateTime        @default(now()) @updatedAt
+  sections      ReportSection[]
+  aiContent     AIContent[]
+  chapters      StoryChapter[]
 
   @@unique([sourceSystem, sourceId])
 }
 
 model ReportSection {
-  id        String            @id @default(cuid())
-  reportId  String
-  report    Report            @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  order     Int
-  number    String // e.g. "3" or "3.2"
-  heading   String
-  body      String
-  citedBy   AIContentSource[]
+  id       String            @id @default(cuid())
+  reportId String
+  report   Report            @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  order    Int
+  number   String
+  heading  String
+  body     String
+  citedBy  AIContentSource[]
+
+  @@unique([reportId, number])
 }
 
+/// Licensed photo or official video, with attribution.
 model Media {
-  id           String     @id @default(cuid())
-  expeditionId String
-  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
-  type         String // photo | video
-  url          String
+  id           String      @id @default(cuid())
+  kind         String // photo | video
+  title        String
   caption      String
   altText      String
-  credit       String
+  url          String // local image path, or YouTube watch URL
+  youtubeId    String?
+  author       String
+  license      String
+  licenseUrl   String?
+  sourceUrl    String      @unique // file page / video page: the dedupe key
+  stationId    String?
+  station      Station?    @relation(fields: [stationId], references: [id], onDelete: SetNull)
+  expeditionId String?
+  expedition   Expedition? @relation(fields: [expeditionId], references: [id], onDelete: SetNull)
 }
 
-model DataProduct {
-  id           String     @id @default(cuid())
-  expeditionId String
-  expedition   Expedition @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+/// Official data portal, dataset, live-data page or repository.
+model Resource {
+  id           String      @id @default(cuid())
   title        String
-  parameter    String
-  format       String
-  volume       String
-  npdcUrl      String
+  url          String      @unique
+  kind         String // live-data | dataset | portal | repository | station-page
+  description  String
+  publisher    String
+  stationId    String?
+  station      Station?    @relation(fields: [stationId], references: [id], onDelete: SetNull)
+  expeditionId String?
+  expedition   Expedition? @relation(fields: [expeditionId], references: [id], onDelete: SetNull)
 }
 
 model FieldEntry {
@@ -171,6 +163,8 @@ model FieldEntry {
   reviewStatus String      @default("pending") // pending | approved | rejected
   reviewedAt   DateTime?
   aiContent    AIContent[]
+
+  @@index([stationId, reviewStatus])
 }
 
 model AIContent {
@@ -178,14 +172,14 @@ model AIContent {
   kind               String // explanation | caption
   audience           String // student | public | social
   text               String
-  provider           String // openrouter | gemini | mock
+  provider           String // openrouter | gemini | offline
   model              String
   generatedAt        DateTime          @default(now())
   reviewStatus       String            @default("pending")
   reviewedAt         DateTime?
   editedByReviewer   Boolean           @default(false)
-  sourceHash         String? // hash of the cited document when generated; a mismatch means stale
-  promptVersion      String?
+  sourceHash         String // hash of the cited document when generated; a mismatch means stale
+  promptVersion      String
   sourceReportId     String?
   sourceReport       Report?           @relation(fields: [sourceReportId], references: [id], onDelete: Cascade)
   sourceFieldEntryId String?
@@ -195,7 +189,7 @@ model AIContent {
   @@index([sourceReportId, kind, audience, sourceHash])
 }
 
-// Section-level provenance: which exact report sections an output is grounded in.
+/// Section-level provenance: which exact document sections an output is grounded in.
 model AIContentSource {
   aiContentId String
   sectionId   String

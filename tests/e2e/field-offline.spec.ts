@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("field entry logged offline is queued, then syncs automatically on reconnect", async ({ page, context, request }) => {
   await page.goto("/field");

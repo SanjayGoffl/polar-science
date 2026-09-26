@@ -15,6 +15,7 @@ export default defineConfig({
     command: PROD ? `npx next start -p ${PORT}` : `npx next dev -p ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !PROD,
+    env: { ADMIN_PASSCODE: "ncpor2026" },
     timeout: 120_000,
   },
 });

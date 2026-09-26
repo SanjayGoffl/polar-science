@@ -228,9 +228,8 @@ function citationLine(content: AIContentDTO, report: ReaderReport) {
   const secs = content.sources.map((s) => `§${s.section.number}`).join(", ");
   const url = typeof window !== "undefined" ? `${window.location.origin}/reports/${report.slug}` : `/reports/${report.slug}`;
   const line = `Source: ${report.expedition.shortName}, “${report.title}” ${secs} — ${url}`;
-  // Never let sample content leave the portal looking like an official NCPOR finding.
-  return report.contentStatus === "official" ? line : `${line}
-[Illustrative sample content, not an official NCPOR finding]`;
+  return `${line}
+Original: ${report.externalUrl}`;
 }
 
 function CaptionCard({ text, report, content }: { text: string; report: ReaderReport; content: AIContentDTO }) {
@@ -277,9 +276,7 @@ function SourceBox({ content, report, onJump }: { content: AIContentDTO; report:
       <p className="text-sm font-semibold mt-1 leading-snug">
         {report.expedition.shortName} · {report.title}
       </p>
-      {report.contentStatus !== "official" && (
-        <p className="mt-1 text-[11px] font-semibold text-warn">Illustrative sample document (prototype data, not an NCPOR publication)</p>
-      )}
+      <p className="mt-1 text-[11px] text-muted">{report.publisher}</p>
       <ul className="mt-2 space-y-1">
         {content.sources.map((s) => (
           <li key={s.section.id}>
@@ -289,14 +286,14 @@ function SourceBox({ content, report, onJump }: { content: AIContentDTO; report:
           </li>
         ))}
       </ul>
-      <a href={`/reports/${report.slug}#section-${content.sources[0]?.section.number ?? 1}`} className="inline-block mt-3 text-xs font-semibold underline underline-offset-4">
-        View original source
+      <a href={report.externalUrl} target="_blank" rel="noreferrer" className="inline-block mt-3 text-xs font-semibold underline underline-offset-4">
+        View the original on {new URL(report.externalUrl).hostname} ↗
       </a>
     </div>
   );
 }
 
-const PROVIDER_LABEL: Record<string, string> = { openrouter: "OpenRouter", gemini: "Gemini", mock: "Offline summariser" };
+const PROVIDER_LABEL: Record<string, string> = { openrouter: "OpenRouter", gemini: "Gemini", offline: "Offline summariser" };
 
 function Provenance({ result, onRegenerate }: { result: Result; onRegenerate: () => void }) {
   const c = result.content;
@@ -308,7 +305,7 @@ function Provenance({ result, onRegenerate }: { result: Result; onRegenerate: ()
     <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">
       <span className={`rounded px-1.5 py-0.5 font-semibold ${status.cls}`}>{status.label}</span>
       <span>
-        {c.provider === "mock" ? PROVIDER_LABEL.mock : `${PROVIDER_LABEL[c.provider] ?? c.provider} (${c.model})`}
+        {c.provider === "offline" ? PROVIDER_LABEL.offline : `${PROVIDER_LABEL[c.provider] ?? c.provider} (${c.model})`}
         {c.editedByReviewer ? " · edited by reviewer" : ""} ·{" "}
         {new Date(c.generatedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
         {result.cached ? " · saved copy" : ""}

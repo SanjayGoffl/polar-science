@@ -11,15 +11,13 @@ export interface ReaderReport {
   slug: string;
   title: string;
   type: string;
-  authors: string;
-  venue: string | null;
+  publisher: string;
+  retrievedAt: string;
   publishedOn: string;
   abstract: string;
-  project: string | null;
-  contentStatus: string;
-  externalUrl: string | null;
+  externalUrl: string;
   expedition: { slug: string; shortName: string; name: string; region: string; hasStory: boolean };
-  station: string;
+  station: string | null;
   sections: { id: string; number: string; heading: string; body: string }[];
 }
 
@@ -52,30 +50,34 @@ export function ReportReader({
           <span>{REPORT_TYPE_LABEL[report.type] ?? report.type}</span>
         </nav>
         <p className="eyebrow" style={{ color }}>
-          {REPORT_TYPE_LABEL[report.type] ?? report.type} · {report.expedition.shortName} · {report.station}
+          {REPORT_TYPE_LABEL[report.type] ?? report.type} · {report.expedition.shortName}{report.station ? ` · ${report.station}` : ""}
         </p>
         <h1 className="font-serif text-3xl md:text-[2.6rem] leading-[1.12] tracking-tight mt-3">{report.title}</h1>
         <dl className="mt-5 grid sm:grid-cols-3 gap-4 text-sm border-y border-line py-4">
           <div>
-            <dt className="text-xs text-muted">Authors</dt>
-            <dd>{report.authors}</dd>
+            <dt className="text-xs text-muted">Published by</dt>
+            <dd>{report.publisher}</dd>
           </div>
           <div>
             <dt className="text-xs text-muted">Published</dt>
             <dd>{new Date(report.publishedOn).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</dd>
           </div>
           <div>
-            <dt className="text-xs text-muted">Series</dt>
-            <dd>{report.venue ?? "—"}</dd>
+            <dt className="text-xs text-muted">Original</dt>
+            <dd>
+              <a href={report.externalUrl} target="_blank" rel="noreferrer" className="underline break-all">
+                {new URL(report.externalUrl).hostname} ↗
+              </a>
+            </dd>
           </div>
         </dl>
 
         <div className="mt-5">
-          <SourceNotice status={report.contentStatus} sourceUrl={report.externalUrl} what="report" />
+          <SourceNotice publisher={report.publisher.split(" · ").pop()!} url={report.externalUrl} retrievedAt={report.retrievedAt} />
         </div>
 
         <section className="mt-6 rounded-xl bg-paper-2 p-5">
-          <h2 className="eyebrow mb-2">Abstract</h2>
+          <h2 className="eyebrow mb-2">In brief (opening lines)</h2>
           <p className="leading-relaxed text-ink-2">{report.abstract}</p>
         </section>
 
