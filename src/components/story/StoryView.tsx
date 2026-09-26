@@ -281,7 +281,7 @@ export function StoryView({ story }: { story: StoryData }) {
                       <p className="text-sm text-ink-2 mt-3 line-clamp-3">{r.abstract}</p>
                       <div className="mt-auto pt-5 flex flex-wrap gap-2">
                         <Link href={`/reports/${r.slug}?explain=student`} className="btn btn-accent !py-2 !px-4 !text-sm">
-                          ✦ Explain this simply
+                          Plain-language summary
                         </Link>
                         <Link href={`/reports/${r.slug}`} className="btn btn-ghost !py-2 !px-4 !text-sm">
                           Read the full text

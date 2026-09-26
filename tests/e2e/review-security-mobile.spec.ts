@@ -111,7 +111,7 @@ test.describe("mobile", () => {
   });
 
   test("key pages have no horizontal overflow", async ({ page }) => {
-    for (const url of ["/", "/explore", "/stories", "/reports/india-marks-four-successful-decades-of-scientific-endeavourin-antarcti-pib-1712402", "/expeditions/isea-40/story", "/stories", "/stations/bharati", "/search?q=ice", "/admin"]) {
+    for (const url of ["/", "/explore", "/stories", "/library", "/library?tab=media", "/reports/india-marks-four-successful-decades-of-scientific-endeavourin-antarcti-pib-1712402", "/expeditions/isea-40/story", "/stories", "/library", "/library?tab=media", "/stations/bharati", "/search?q=ice", "/admin"]) {
       await page.goto(url);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, url).toBeLessThanOrEqual(1);

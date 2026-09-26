@@ -78,11 +78,24 @@ export function AIPanel({
     [report.id],
   );
 
-  // Deep links (?explain=student / ?caption=1) start generation immediately.
+  // Show a summary that already exists (reviewed ones first) without calling any AI model.
+  // New text is only generated when the reader asks for it, which keeps API usage to real demand.
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
   useEffect(() => {
-    if (autoExplain) generate("explain", autoExplain);
-    else if (autoCaption) generate("caption", "student");
-  }, [autoExplain, autoCaption, generate]);
+    const k = key(tab, audience);
+    if (results[k] || checked[k]) return;
+    setChecked((c) => ({ ...c, [k]: true }));
+    fetch("/api/ai/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportId: report.id, kind: tab === "caption" ? "caption" : "explanation", audience: tab === "caption" ? "social" : audience, cachedOnly: true }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (json?.content) setResults((r) => ({ ...r, [k]: json }));
+      })
+      .catch(() => undefined);
+  }, [tab, audience, results, checked, report.id]);
 
   useEffect(() => {
     onCitations(current ? current.content.sources.map((s) => s.section.number) : []);
@@ -91,8 +104,6 @@ export function AIPanel({
   function switchTo(t: Tab, a: Audience) {
     setTab(t);
     setAudience(a);
-    // Toggling audience on an explanation already shown regenerates for the new audience automatically.
-    if (!results[key(t, a)] && (t === "caption" || results[key("explain", a === "student" ? "public" : "student")])) generate(t, a);
   }
 
   const isLoading = loading === key(tab, audience);
@@ -100,13 +111,13 @@ export function AIPanel({
   return (
     <aside className="lg:sticky lg:top-24 card overflow-hidden shadow-lg lg:max-h-[calc(100vh-7rem)] flex flex-col" aria-label="AI explanation and caption tools">
       <div className="bg-ink text-paper px-5 pt-5 pb-4">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-paper/60">✦ Understand & share</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-paper/60">Summaries and sharing</p>
         <div role="tablist" className="mt-3 grid grid-cols-2 gap-1 rounded-full bg-white/10 p-1 text-sm font-semibold">
           <button role="tab" aria-selected={tab === "explain"} onClick={() => switchTo("explain", audience)} className={`rounded-full py-1.5 ${tab === "explain" ? "bg-paper text-ink" : "text-paper/80"}`}>
-            Explain simply
+            Plain language
           </button>
           <button role="tab" aria-selected={tab === "caption"} onClick={() => switchTo("caption", audience)} className={`rounded-full py-1.5 ${tab === "caption" ? "bg-paper text-ink" : "text-paper/80"}`}>
-            Social caption
+            Social post
           </button>
         </div>
       </div>
@@ -134,11 +145,11 @@ export function AIPanel({
         {!current && !isLoading && (
           <div className="text-center py-6">
             <p className="font-serif text-xl leading-snug">
-              {tab === "explain" ? "Turn this technical report into plain language." : "Draft a ready-to-post social caption."}
+              {tab === "explain" ? "Get a plain-language summary of this document." : "Draft a social media post about this document."}
             </p>
-            <p className="text-sm text-muted mt-2">Every sentence is grounded in this document, and the sections it used are cited.</p>
+            <p className="text-sm text-muted mt-2">Drawn only from this document, with the sections it uses cited. Generated on request and reviewed by NCPOR before publication.</p>
             <button onClick={() => generate(tab, audience)} className="btn btn-accent mt-5">
-              {tab === "explain" ? `✦ Explain this simply` : "✦ Generate social caption"}
+              {tab === "explain" ? "Generate summary" : "Generate post"}
             </button>
           </div>
         )}
@@ -175,7 +186,7 @@ function LoadingState({ sections, tab }: { sections: number; tab: Tab }) {
   return (
     <div className="py-4" aria-live="polite">
       <p className="text-sm text-muted mb-4">
-        Reading {sections} sections and {tab === "explain" ? "writing a plain-language version" : "drafting a caption"}…
+        Reading {sections} sections and {tab === "explain" ? "writing a plain-language summary" : "drafting a post"}…
       </p>
       <div className="space-y-2.5 animate-pulse">
         <div className="h-5 bg-paper-2 rounded w-3/4" />

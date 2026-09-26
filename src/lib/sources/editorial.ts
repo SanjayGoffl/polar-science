@@ -77,8 +77,13 @@ export interface Editorial {
 }
 
 /** Editorial mapping plus licensed media metadata (data/sources/media.json). */
-export function loadEditorial(root = "data/sources"): Editorial {
-  const ed = JSON.parse(readFileSync(`${root}/editorial.json`, "utf8")) as Omit<Editorial, "media">;
+export function loadEditorial(root = "data/sources"): Editorial & EditorialCopy {
+  const ed = JSON.parse(readFileSync(`${root}/editorial.json`, "utf8")) as Omit<Editorial, "media"> & EditorialCopy;
   const media = JSON.parse(readFileSync(`${root}/media.json`, "utf8")) as Editorial["media"];
   return { ...ed, media };
+}
+
+export interface EditorialCopy {
+  regions: { slug: string; label: string; blurb: string; order: number }[];
+  copy: Record<string, string>;
 }

@@ -55,9 +55,11 @@ interface Props {
   expeditions: ExploreExpedition[];
   initialRegion: RegionView;
   initialSelection: Selection;
+  copy: { title: string; lede: string };
+  regionLabels: Record<string, string>;
 }
 
-export function ExploreView({ stations, expeditions, initialRegion, initialSelection }: Props) {
+export function ExploreView({ stations, expeditions, initialRegion, initialSelection, copy, regionLabels }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const [region, setRegion] = useState<RegionView>(initialRegion);
@@ -98,9 +100,9 @@ export function ExploreView({ stations, expeditions, initialRegion, initialSelec
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <p className="eyebrow">Explore</p>
-          <h1 className="font-serif text-4xl md:text-5xl tracking-tight">Where India does polar science</h1>
+          <h1 className="font-serif text-4xl md:text-5xl tracking-tight">{copy.title}</h1>
           <p className="text-ink-2 mt-2 max-w-2xl">
-            Click a station on the map or a year on the timeline. Each one opens the expedition, its reports, and (where available) the full story.
+            {copy.lede}
           </p>
         </div>
         <div role="tablist" aria-label="Region" className="flex gap-1 rounded-full bg-paper-2 p-1 max-w-full overflow-x-auto">
@@ -114,7 +116,7 @@ export function ExploreView({ stations, expeditions, initialRegion, initialSelec
                 region === r ? "bg-white shadow text-ink" : "text-ink-2 hover:text-ink"
               }`}
             >
-              {r === "all" ? "All regions" : REGIONS[r as Region].label}
+              {r === "all" ? "All regions" : regionLabels[r] ?? REGIONS[r as Region].label}
             </button>
           ))}
         </div>

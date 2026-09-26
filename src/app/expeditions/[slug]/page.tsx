@@ -68,7 +68,7 @@ export default async function ExpeditionPage({ params }: { params: Promise<{ slu
                 <Link href={`/reports/${r.slug}`} className="font-serif text-xl hover:underline">{r.title}</Link>
               </div>
               <Link href={`/reports/${r.slug}?explain=student`} className="btn btn-ghost !text-sm !py-2 justify-self-start">
-                ✦ Explain simply
+                Plain-language summary
               </Link>
             </li>
           ))}

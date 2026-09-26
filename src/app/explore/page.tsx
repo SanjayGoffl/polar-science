@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ExploreView } from "@/components/explore/ExploreView";
 import { db } from "@/lib/db";
+import { getSiteContent } from "@/lib/copy";
 import { stationPhotos, toImage } from "@/lib/queries";
 import type { RegionView } from "@/lib/regions";
 
@@ -13,6 +14,7 @@ export default async function ExplorePage({
   searchParams: Promise<{ region?: string; station?: string; expedition?: string }>;
 }) {
   const sp = await searchParams;
+  const { t, regions } = await getSiteContent();
   const [stations, expeditions, photos] = await Promise.all([
     db.station.findMany({ orderBy: { name: "asc" } }),
     db.expedition.findMany({ orderBy: [{ year: "asc" }, { slug: "asc" }], include: { _count: { select: { reports: true } } } }),
@@ -29,6 +31,8 @@ export default async function ExplorePage({
       expeditions={expeditions.map(({ _count, ...e }) => ({ ...e, reportCount: _count.reports }))}
       initialRegion={region}
       initialSelection={ex ? { type: "expedition", id: ex.id } : st ? { type: "station", id: st.id } : null}
+      copy={{ title: t("explore.title"), lede: t("explore.lede") }}
+      regionLabels={Object.fromEntries(regions.map((r) => [r.slug, r.label]))}
     />
   );
 }

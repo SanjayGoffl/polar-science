@@ -176,6 +176,15 @@ async function main() {
     }
   }
 
+  // Regions and site copy.
+  for (const r of ed.regions) {
+    await db.region.upsert({ where: { slug: r.slug }, update: { label: r.label, blurb: r.blurb, order: r.order }, create: r });
+  }
+  for (const [key, value] of Object.entries(ed.copy)) {
+    await db.siteCopy.upsert({ where: { key }, update: { value }, create: { key, value } });
+  }
+  await db.siteCopy.deleteMany({ where: { key: { notIn: Object.keys(ed.copy) } } });
+
   // Remove source-derived rows that are no longer in the editorial set.
   counts.removed += (await db.media.deleteMany({ where: { sourceUrl: { notIn: ed.media.map((m) => m.sourceUrl) } } })).count;
   counts.removed += (await db.resource.deleteMany({ where: { url: { notIn: ed.resources.map((r) => r.url) } } })).count;

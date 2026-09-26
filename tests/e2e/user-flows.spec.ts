@@ -25,9 +25,11 @@ test("explore → story → explain → field entry → review → published", a
 
   // Jump to publications and explain the expedition report simply
   await page.getByRole("navigation", { name: "Chapters" }).getByRole("link", { name: /Sources/ }).click();
-  await page.getByRole("link", { name: "✦ Explain this simply" }).first().click();
+  await page.getByRole("link", { name: "Plain-language summary" }).first().click();
   await expect(page).toHaveURL(/\/reports\/.+explain=student/);
   const panel = page.getByRole("complementary", { name: /AI explanation/ });
+  // Nothing is generated until the reader asks: this keeps AI usage to real demand.
+  await panel.getByRole("button", { name: "Generate summary" }).click();
   await expect(panel.getByText("Based on")).toBeVisible({ timeout: 30_000 });
   await expect(panel.getByRole("button", { name: /^§\d/ }).first()).toBeVisible();
   await expect(page.getByText("cited").first()).toBeVisible();
@@ -35,10 +37,12 @@ test("explore → story → explain → field entry → review → published", a
   // Toggle audience → a different, also-cited version
   await panel.getByRole("radio", { name: "General public" }).click();
   await expect(panel.getByRole("radio", { name: "General public" })).toHaveAttribute("aria-checked", "true");
+  await panel.getByRole("button", { name: "Generate summary" }).click();
   await expect(panel.getByText("Based on")).toBeVisible({ timeout: 30_000 });
 
   // Social caption
-  await panel.getByRole("tab", { name: "Social caption" }).click();
+  await panel.getByRole("tab", { name: "Social post" }).click();
+  await panel.getByRole("button", { name: "Generate post" }).click();
   await expect(panel.getByText("NCPOR Outreach")).toBeVisible({ timeout: 30_000 });
   await expect(panel.getByText(/Source: ISEA-40/).first()).toBeVisible();
 

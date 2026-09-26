@@ -4,6 +4,7 @@ import { SearchBox } from "./SearchBox";
 const NAV = [
   { href: "/explore", label: "Explore" },
   { href: "/stories", label: "Stories" },
+  { href: "/library", label: "Library" },
   { href: "/field", label: "Field app" },
   { href: "/admin", label: "Review" },
 ];

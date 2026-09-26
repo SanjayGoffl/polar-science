@@ -13,7 +13,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const has = q.length >= 2;
   const like = { contains: q };
 
-  const [expeditions, stations, reports, notes] = has
+  const [expeditions, stations, reports, notes, media, resources] = has
     ? await Promise.all([
         db.expedition.findMany({ where: { OR: [{ name: like }, { shortName: like }, { summary: like }] }, include: { station: true }, take: 10 }),
         db.station.findMany({ where: { OR: [{ name: like }, { location: like }, { description: like }] }, take: 10 }),
@@ -28,10 +28,12 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           orderBy: { capturedAt: "desc" },
           take: 10,
         }),
+        db.media.findMany({ where: { OR: [{ title: like }, { caption: like }, { author: like }] }, take: 12 }),
+        db.resource.findMany({ where: { OR: [{ title: like }, { description: like }, { publisher: like }] }, take: 12 }),
       ])
-    : [[], [], [], []];
+    : [[], [], [], [], [], []];
 
-  const total = expeditions.length + stations.length + reports.length + notes.length;
+  const total = expeditions.length + stations.length + reports.length + notes.length + media.length + resources.length;
 
   const snippet = (text: string) => {
     const i = text.toLowerCase().indexOf(q.toLowerCase());
@@ -45,7 +47,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       <h1 className="font-serif text-4xl tracking-tight mb-6">Search</h1>
       <SearchBox defaultValue={q} />
       <p className="text-xs text-muted mt-3">
-        Searches stories, stations, reports and published field notes in this portal. For scientific datasets, use the{" "}
+        Searches stations, expeditions, official documents, photos, data resources and published field notes. For scientific datasets, use the{" "}
         <a href="https://npdc.ncaor.gov.in/" className="underline" target="_blank" rel="noreferrer">National Polar Data Center ↗</a>.
       </p>
 
@@ -119,6 +121,41 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   </span>
                   <span className="block text-sm text-ink-2 mt-1">“{snippet(n.notes)}”</span>
                 </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {resources.length > 0 && (
+        <section className="mt-10">
+          <h2 className="eyebrow mb-3">Data resources</h2>
+          <ul className="grid sm:grid-cols-2 gap-3">
+            {resources.map((r) => (
+              <li key={r.id}>
+                <a href={r.url} target="_blank" rel="noreferrer" className="card p-4 block hover:border-ink">
+                  <span className="block text-xs text-muted">{r.kind.replaceAll("-", " ")} · {r.publisher}</span>
+                  <span className="block font-semibold">{r.title} ↗</span>
+                  <span className="block text-sm text-ink-2">{r.description}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {media.length > 0 && (
+        <section className="mt-10">
+          <h2 className="eyebrow mb-3">Photos and videos</h2>
+          <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {media.map((m) => (
+              <li key={m.id}>
+                <a href={m.sourceUrl} target="_blank" rel="noreferrer" className="block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={m.url} alt={m.altText} loading="lazy" className="aspect-[4/3] w-full rounded-lg object-cover" />
+                  <span className="block text-xs mt-1 font-semibold">{m.title}</span>
+                  <span className="block text-[11px] text-muted">{m.author} · {m.license}</span>
+                </a>
               </li>
             ))}
           </ul>

@@ -198,3 +198,17 @@ model AIContentSource {
 
   @@id([aiContentId, sectionId])
 }
+
+/// Region labels and descriptions shown across the site.
+model Region {
+  slug  String @id // antarctica | arctic | himalaya
+  label String
+  blurb String
+  order Int
+}
+
+/// Editable site copy (headings, introductions, tour steps), keyed by location.
+model SiteCopy {
+  key   String @id
+  value String
+}

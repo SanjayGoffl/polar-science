@@ -1,21 +1,18 @@
 export type Region = "antarctica" | "arctic" | "himalaya";
 export type RegionView = Region | "all";
 
-export const REGIONS: Record<Region, { label: string; color: string; blurb: string }> = {
+export const REGIONS: Record<Region, { label: string; color: string }> = {
   antarctica: {
     label: "Antarctica",
     color: "#2c5d7c",
-    blurb: "Indian expeditions since 1981. Two research stations operate today: Maitri and Bharati.",
   },
   arctic: {
     label: "Arctic",
     color: "#6d4a86",
-    blurb: "Himadri at Ny-Ålesund, Svalbard, since 2008, with winter expeditions since December 2023.",
   },
   himalaya: {
     label: "Himalaya",
     color: "#a65a2e",
-    blurb: "Himansh, above 4,000 m in the Chandra basin, where NCPOR monitors six glaciers.",
   },
 };
 

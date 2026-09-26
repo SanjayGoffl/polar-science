@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateForReport } from "@/lib/ai";
+import { generateForReport, getCachedForReport } from "@/lib/ai";
 import { isAdmin } from "@/lib/admin";
 import { db } from "@/lib/db";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
@@ -17,6 +17,12 @@ export async function POST(req: Request) {
   }
   if (!(await db.report.findUnique({ where: { id: body.reportId }, select: { id: true } }))) {
     return NextResponse.json({ error: "Report not found" }, { status: 404 });
+  }
+
+  // Cache lookups are free: they never call a model.
+  if (body.cachedOnly) {
+    const content = await getCachedForReport({ reportId: body.reportId, kind, audience });
+    return NextResponse.json({ content, cached: true, fallbackReason: null, canRegenerate: await isAdmin() });
   }
 
   // Forcing a fresh generation spends API quota, so only reviewers may do it.

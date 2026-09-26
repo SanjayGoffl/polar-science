@@ -15,7 +15,8 @@
     "sources:sync": "tsx scripts/sync-sources.ts",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset --force && tsx scripts/sync-sources.ts && node scripts/clear-uploads.mjs",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "ai:check": "node scripts/check-ai.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

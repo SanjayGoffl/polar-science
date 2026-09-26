@@ -66,6 +66,16 @@ async function loadSource(reportId: string) {
   return { doc, hash: hashSource(doc) };
 }
 
+/** The best existing output for this exact document text: reviewer-approved first, then the newest draft. */
+export async function getCachedForReport(opts: { reportId: string; kind: AIKind; audience: ExplainAudience | "social" }) {
+  const { hash } = await loadSource(opts.reportId);
+  const base = { sourceReportId: opts.reportId, kind: opts.kind, audience: opts.audience, sourceHash: hash };
+  return (
+    (await db.aIContent.findFirst({ where: { ...base, reviewStatus: "approved" }, orderBy: { reviewedAt: "desc" }, include: aiInclude })) ??
+    (await db.aIContent.findFirst({ where: { ...base, reviewStatus: "pending" }, orderBy: { generatedAt: "desc" }, include: aiInclude }))
+  );
+}
+
 // Identical concurrent requests (e.g. two visitors opening the same report) share one generation.
 const inflight = new Map<string, Promise<Awaited<ReturnType<typeof generate>>>>();
 

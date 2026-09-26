@@ -1,171 +1,605 @@
 {
   "stations": [
     {
-      "slug": "maitri", "name": "Maitri", "region": "antarctica", "kind": "station",
-      "lat": -70.7644, "lng": 11.7342, "coordinatesSource": "ncpor:maitri",
-      "established": "Site selected in 1988", "elevation": "about 50 m above sea level",
+      "slug": "maitri",
+      "name": "Maitri",
+      "region": "antarctica",
+      "kind": "station",
+      "lat": -70.7644,
+      "lng": 11.7342,
+      "coordinatesSource": "ncpor:maitri",
+      "established": "Site selected in 1988",
+      "elevation": "about 50 m above sea level",
       "location": "Schirmacher Oasis, Dronning Maud Land, Antarctica",
-      "sourceUrl": "https://ncpor.res.in/antarcticas/display/376-maitri-", "liveKey": "maitri",
-      "description": { "doc": "ncpor:maitri", "section": "1", "quote": "In the year 1988 an ice free, rocky area on the Schirmacher oasis was selected to build the Second Research Station “Maitri (70o45’52” S & 11o44’03” E). The building was erected on steel stilts, and has since stood the test of time. Maitri also serves as a gateway to one of the largest mountain chains in central Dronning Maud land, located south of Schirmacher. It is an inland station about 100 km from the shore at an elevation of about 50 meters above sea level." }
+      "sourceUrl": "https://ncpor.res.in/antarcticas/display/376-maitri-",
+      "liveKey": "maitri",
+      "description": {
+        "doc": "ncpor:maitri",
+        "section": "1",
+        "quote": "In the year 1988 an ice free, rocky area on the Schirmacher oasis was selected to build the Second Research Station “Maitri (70o45’52” S & 11o44’03” E). The building was erected on steel stilts, and has since stood the test of time. Maitri also serves as a gateway to one of the largest mountain chains in central Dronning Maud land, located south of Schirmacher. It is an inland station about 100 km from the shore at an elevation of about 50 meters above sea level."
+      }
     },
     {
-      "slug": "bharati", "name": "Bharati", "region": "antarctica", "kind": "station",
-      "lat": -69.40678, "lng": 76.19525, "coordinatesSource": "ncpor:news-414",
+      "slug": "bharati",
+      "name": "Bharati",
+      "region": "antarctica",
+      "kind": "station",
+      "lat": -69.40678,
+      "lng": 76.19525,
+      "coordinatesSource": "ncpor:news-414",
       "established": "2012",
       "location": "Larsemann Hills, East Antarctica",
-      "sourceUrl": "https://pib.gov.in/PressReleasePage.aspx?PRID=1712402", "liveKey": "bharati",
-      "description": { "doc": "pib:1712402", "section": "2", "quote": "Bharati and Maitri are India's permanent research base stations in Antarctica. The stations are approachable only during the austral summer season between November and March." }
+      "sourceUrl": "https://pib.gov.in/PressReleasePage.aspx?PRID=1712402",
+      "liveKey": "bharati",
+      "description": {
+        "doc": "pib:1712402",
+        "section": "2",
+        "quote": "Bharati and Maitri are India's permanent research base stations in Antarctica. The stations are approachable only during the austral summer season between November and March."
+      }
     },
     {
-      "slug": "himadri", "name": "Himadri", "region": "arctic", "kind": "station",
-      "lat": 78.9167, "lng": 11.9333, "coordinatesSource": "https://www.pib.gov.in/PressReleseDetailm.aspx?PRID=2088842",
+      "slug": "himadri",
+      "name": "Himadri",
+      "region": "arctic",
+      "kind": "station",
+      "lat": 78.9167,
+      "lng": 11.9333,
+      "coordinatesSource": "https://www.pib.gov.in/PressReleseDetailm.aspx?PRID=2088842",
       "established": "1 July 2008",
       "location": "Ny-Ålesund, Svalbard, Norway",
-      "sourceUrl": "https://ncpor.res.in/pages/view/340-himadri-station", "liveKey": "himadri",
-      "description": { "doc": "ncpor:himadri", "section": "1" }
+      "sourceUrl": "https://ncpor.res.in/pages/view/340-himadri-station",
+      "liveKey": "himadri",
+      "description": {
+        "doc": "ncpor:himadri",
+        "section": "1"
+      }
     },
     {
-      "slug": "himansh", "name": "Himansh", "region": "himalaya", "kind": "station",
-      "lat": 32.4094, "lng": 77.6089, "coordinatesSource": "https://ncpor.res.in/pages/view/115/426-himansh",
-      "established": "9 October 2016", "elevation": "4,080 m above mean sea level",
+      "slug": "himansh",
+      "name": "Himansh",
+      "region": "himalaya",
+      "kind": "station",
+      "lat": 32.4094,
+      "lng": 77.6089,
+      "coordinatesSource": "https://ncpor.res.in/pages/view/115/426-himansh",
+      "established": "9 October 2016",
+      "elevation": "4,080 m above mean sea level",
       "location": "Sutri Dhaka, Chandra basin, Lahaul-Spiti, Himachal Pradesh",
-      "sourceUrl": "https://ncpor.res.in/pages/view/115/426-himansh", "liveKey": "himansh",
-      "description": { "doc": "ncpor:himansh", "section": "1", "quote": "HIMANSH is a dedicated Research Station established at Sutri Dhaka, Chandra Basin, Lahaul-Spiti valley of Himachal Pradesh which has an altitude of 4080m amsl." }
+      "sourceUrl": "https://ncpor.res.in/pages/view/115/426-himansh",
+      "liveKey": "himansh",
+      "description": {
+        "doc": "ncpor:himansh",
+        "section": "1",
+        "quote": "HIMANSH is a dedicated Research Station established at Sutri Dhaka, Chandra Basin, Lahaul-Spiti valley of Himachal Pradesh which has an altitude of 4080m amsl."
+      }
     }
   ],
-
   "entries": [
     {
-      "slug": "isea-1", "kind": "milestone", "name": "First Indian Expedition to Antarctica", "shortName": "ISEA-1", "number": 1,
-      "year": 1981, "region": "antarctica",
-      "summary": { "doc": "pib:1685978", "section": "2", "quote": "The Indian Antarctic expeditions began in 1981. The first trip comprised of a team of 21 scientists and support staff led by Dr SZ Qasim." },
+      "slug": "isea-1",
+      "kind": "milestone",
+      "name": "First Indian Expedition to Antarctica",
+      "shortName": "ISEA-1",
+      "number": 1,
+      "year": 1981,
+      "region": "antarctica",
+      "summary": {
+        "doc": "pib:1685978",
+        "section": "2",
+        "quote": "The Indian Antarctic expeditions began in 1981. The first trip comprised of a team of 21 scientists and support staff led by Dr SZ Qasim."
+      },
       "documents": []
     },
     {
-      "slug": "dakshin-gangotri-1983", "kind": "milestone", "name": "Dakshin Gangotri, India's first Antarctic base", "shortName": "Dakshin Gangotri",
-      "year": 1983, "region": "antarctica",
-      "summary": { "doc": "pib:1771934", "section": "3", "quote": "built three permanent research base stations in Antarctica, named DakshinGangotri (1983), Maitri (1988) and Bharati (2012)." },
+      "slug": "dakshin-gangotri-1983",
+      "kind": "milestone",
+      "name": "Dakshin Gangotri, India's first Antarctic base",
+      "shortName": "Dakshin Gangotri",
+      "year": 1983,
+      "region": "antarctica",
+      "summary": {
+        "doc": "pib:1771934",
+        "section": "3",
+        "quote": "built three permanent research base stations in Antarctica, named DakshinGangotri (1983), Maitri (1988) and Bharati (2012)."
+      },
       "documents": []
     },
     {
-      "slug": "maitri-1988", "kind": "milestone", "name": "Maitri station", "shortName": "Maitri",
-      "year": 1988, "region": "antarctica", "station": "maitri",
-      "summary": { "doc": "ncpor:maitri", "section": "1", "quote": "In the year 1988 an ice free, rocky area on the Schirmacher oasis was selected to build the Second Research Station “Maitri (70o45’52” S & 11o44’03” E)." },
-      "documents": ["ncpor:maitri"]
+      "slug": "maitri-1988",
+      "kind": "milestone",
+      "name": "Maitri station",
+      "shortName": "Maitri",
+      "year": 1988,
+      "region": "antarctica",
+      "station": "maitri",
+      "summary": {
+        "doc": "ncpor:maitri",
+        "section": "1",
+        "quote": "In the year 1988 an ice free, rocky area on the Schirmacher oasis was selected to build the Second Research Station “Maitri (70o45’52” S & 11o44’03” E)."
+      },
+      "documents": [
+        "ncpor:maitri"
+      ]
     },
     {
-      "slug": "indian-arctic-programme", "kind": "programme", "name": "India in the Arctic", "shortName": "Arctic programme",
-      "year": 2007, "season": "Since August 2007", "region": "arctic", "station": "himadri", "featured": false,
-      "summary": { "doc": "pib:r70423", "section": "1", "quote": "India launched its first scientific expedition to Ny-Alesund on the Spitsbergen island of Norway in August, 2007" },
-      "documents": ["pib:r70423", "pib:2102740", "ncpor:himadri"]
+      "slug": "indian-arctic-programme",
+      "kind": "programme",
+      "name": "India in the Arctic",
+      "shortName": "Arctic programme",
+      "year": 2007,
+      "season": "Since August 2007",
+      "region": "arctic",
+      "station": "himadri",
+      "featured": false,
+      "summary": {
+        "doc": "pib:r70423",
+        "section": "1",
+        "quote": "India launched its first scientific expedition to Ny-Alesund on the Spitsbergen island of Norway in August, 2007"
+      },
+      "documents": [
+        "pib:r70423",
+        "pib:2102740",
+        "ncpor:himadri"
+      ]
     },
     {
-      "slug": "himadri-2008", "kind": "milestone", "name": "Himadri opens at Ny-Ålesund", "shortName": "Himadri",
-      "year": 2008, "region": "arctic", "station": "himadri",
-      "summary": { "doc": "ncpor:himadri", "section": "1", "quote": "It was inaugurated on the 1st July, 2008 by Shri. KapilSibal the-then Hon. Minister of Science and Technology and Earth Sciences, in the presence of dignitaries from Norway, UK, Germany and other countries besides India." },
+      "slug": "himadri-2008",
+      "kind": "milestone",
+      "name": "Himadri opens at Ny-Ålesund",
+      "shortName": "Himadri",
+      "year": 2008,
+      "region": "arctic",
+      "station": "himadri",
+      "summary": {
+        "doc": "ncpor:himadri",
+        "section": "1",
+        "quote": "It was inaugurated on the 1st July, 2008 by Shri. KapilSibal the-then Hon. Minister of Science and Technology and Earth Sciences, in the presence of dignitaries from Norway, UK, Germany and other countries besides India."
+      },
       "documents": []
     },
     {
-      "slug": "bharati-2012", "kind": "milestone", "name": "Bharati station", "shortName": "Bharati",
-      "year": 2012, "region": "antarctica", "station": "bharati",
-      "summary": { "doc": "pib:1712402", "section": "2", "quote": "Bharati and Maitri are India's permanent research base stations in Antarctica." },
+      "slug": "bharati-2012",
+      "kind": "milestone",
+      "name": "Bharati station",
+      "shortName": "Bharati",
+      "year": 2012,
+      "region": "antarctica",
+      "station": "bharati",
+      "summary": {
+        "doc": "pib:1712402",
+        "section": "2",
+        "quote": "Bharati and Maitri are India's permanent research base stations in Antarctica."
+      },
       "documents": []
     },
     {
-      "slug": "chandra-basin", "kind": "programme", "name": "Himalayan glaciers of the Chandra basin", "shortName": "Chandra basin",
-      "year": 2013, "season": "Since 2013", "region": "himalaya", "station": "himansh",
-      "summary": { "doc": "pib:1941013", "section": "3", "quote": "the National Centre for Polar and Ocean Research (NCPOR) has been monitoring six glaciers in the Chandra basin (2437 km2 area) in western Himalaya since 2013." },
-      "documents": ["pib:1941013"]
+      "slug": "chandra-basin",
+      "kind": "programme",
+      "name": "Himalayan glaciers of the Chandra basin",
+      "shortName": "Chandra basin",
+      "year": 2013,
+      "season": "Since 2013",
+      "region": "himalaya",
+      "station": "himansh",
+      "summary": {
+        "doc": "pib:1941013",
+        "section": "3",
+        "quote": "the National Centre for Polar and Ocean Research (NCPOR) has been monitoring six glaciers in the Chandra basin (2437 km2 area) in western Himalaya since 2013."
+      },
+      "documents": [
+        "pib:1941013"
+      ]
     },
     {
-      "slug": "himansh-2016", "kind": "milestone", "name": "Himansh opens in the Himalaya", "shortName": "Himansh",
-      "year": 2016, "region": "himalaya", "station": "himansh",
-      "summary": { "doc": "pib:r151572", "section": "3" },
-      "documents": ["pib:r151572", "ncpor:himansh"]
+      "slug": "himansh-2016",
+      "kind": "milestone",
+      "name": "Himansh opens in the Himalaya",
+      "shortName": "Himansh",
+      "year": 2016,
+      "region": "himalaya",
+      "station": "himansh",
+      "summary": {
+        "doc": "pib:r151572",
+        "section": "3"
+      },
+      "documents": [
+        "pib:r151572",
+        "ncpor:himansh"
+      ]
     },
     {
-      "slug": "isea-40", "kind": "expedition", "name": "40th Indian Scientific Expedition to Antarctica", "shortName": "ISEA-40", "number": 40,
-      "year": 2021, "season": "Jan – Apr 2021", "region": "antarctica", "station": "bharati", "featured": true,
-      "summary": { "doc": "pib:1712402", "section": "1", "quote": "The 40th Scientific Expedition to Antarctica (40-ISEA) hosted by the Ministry of Earth Sciences successfully returned to Cape Town on April 10, 2021, after completing a journey of ~12 thousand nautical miles in 94 days, including stopovers." },
-      "documents": ["pib:1685978", "pib:1712402"]
+      "slug": "isea-40",
+      "kind": "expedition",
+      "name": "40th Indian Scientific Expedition to Antarctica",
+      "shortName": "ISEA-40",
+      "number": 40,
+      "year": 2021,
+      "season": "Jan – Apr 2021",
+      "region": "antarctica",
+      "station": "bharati",
+      "featured": true,
+      "summary": {
+        "doc": "pib:1712402",
+        "section": "1",
+        "quote": "The 40th Scientific Expedition to Antarctica (40-ISEA) hosted by the Ministry of Earth Sciences successfully returned to Cape Town on April 10, 2021, after completing a journey of ~12 thousand nautical miles in 94 days, including stopovers."
+      },
+      "documents": [
+        "pib:1685978",
+        "pib:1712402"
+      ]
     },
     {
-      "slug": "isea-41", "kind": "expedition", "name": "41st Indian Scientific Expedition to Antarctica", "shortName": "ISEA-41", "number": 41,
-      "year": 2021, "season": "2021 – 22", "region": "antarctica", "station": "maitri",
-      "summary": { "doc": "pib:1771934", "section": "1", "quote": "India has successfully launched the 41st Scientific Expedition to Antarctica with the arrival of the first batch of its contingent at the southern white continent." },
-      "documents": ["pib:1771934", "pib:1776741"]
+      "slug": "isea-41",
+      "kind": "expedition",
+      "name": "41st Indian Scientific Expedition to Antarctica",
+      "shortName": "ISEA-41",
+      "number": 41,
+      "year": 2021,
+      "season": "2021 – 22",
+      "region": "antarctica",
+      "station": "maitri",
+      "summary": {
+        "doc": "pib:1771934",
+        "section": "1",
+        "quote": "India has successfully launched the 41st Scientific Expedition to Antarctica with the arrival of the first batch of its contingent at the southern white continent."
+      },
+      "documents": [
+        "pib:1771934",
+        "pib:1776741"
+      ]
     },
     {
-      "slug": "isea-43", "kind": "expedition", "name": "43rd Indian Scientific Expedition to Antarctica", "shortName": "ISEA-43", "number": 43,
-      "year": 2023, "season": "2023 – 24", "region": "antarctica",
-      "summary": { "doc": "pib:1993769", "section": "1", "quote": "The MV Vasiliy Golovnin, an expedition vessel chartered by India, embarked on its journey from Cape Town to Antarctica for the 43rd ISEA Voyage in the early morning hours of December 23, 2023." },
-      "documents": ["pib:1993769", "pib:1994898"]
+      "slug": "isea-43",
+      "kind": "expedition",
+      "name": "43rd Indian Scientific Expedition to Antarctica",
+      "shortName": "ISEA-43",
+      "number": 43,
+      "year": 2023,
+      "season": "2023 – 24",
+      "region": "antarctica",
+      "summary": {
+        "doc": "pib:1993769",
+        "section": "1",
+        "quote": "The MV Vasiliy Golovnin, an expedition vessel chartered by India, embarked on its journey from Cape Town to Antarctica for the 43rd ISEA Voyage in the early morning hours of December 23, 2023."
+      },
+      "documents": [
+        "pib:1993769",
+        "pib:1994898"
+      ]
     },
     {
-      "slug": "arctic-winter-2023", "kind": "expedition", "name": "India's first winter expedition to the Arctic", "shortName": "Arctic winter",
-      "year": 2023, "season": "From December 2023", "region": "arctic", "station": "himadri",
-      "summary": { "doc": "pib:1987724", "section": "1", "quote": "The Honourable Union Minister, Ministry of Earth Sciences (MoES), Sh Kiren Rijiju, flagged off India’s first winter scientific expedition to the Arctic from the MoES headquarters in New Delhi on December 18, 2023." },
-      "documents": ["pib:1987724"]
+      "slug": "arctic-winter-2023",
+      "kind": "expedition",
+      "name": "India's first winter expedition to the Arctic",
+      "shortName": "Arctic winter",
+      "year": 2023,
+      "season": "From December 2023",
+      "region": "arctic",
+      "station": "himadri",
+      "summary": {
+        "doc": "pib:1987724",
+        "section": "1",
+        "quote": "The Honourable Union Minister, Ministry of Earth Sciences (MoES), Sh Kiren Rijiju, flagged off India’s first winter scientific expedition to the Arctic from the MoES headquarters in New Delhi on December 18, 2023."
+      },
+      "documents": [
+        "pib:1987724"
+      ]
     }
   ],
-
   "stories": {
     "isea-40": [
-      { "kind": "why", "title": "Four decades in Antarctica", "doc": "pib:1685978", "section": "1", "media": "bharati-station" },
-      { "kind": "what", "title": "A focused plan in a pandemic year", "doc": "pib:1685978", "section": "4", "media": "schirmacher-landsat-2026" },
-      { "kind": "where", "title": "Bharati and Maitri, in a short summer window", "doc": "pib:1712402", "section": "2", "quote": "The team reached its destination station Bharati on February 27, 2021, and Maitri on March 08, 2021. Bharati and Maitri are India's permanent research base stations in Antarctica. The stations are approachable only during the austral summer season between November and March.", "focus": { "lat": -69.40678, "lng": 76.19525, "zoom": 5 } },
-      { "kind": "who", "title": "The teams that stayed for the winter", "doc": "pib:1712402", "section": "3", "media": "maitri-station" },
-      { "kind": "found", "title": "Ocean observations on the way south", "doc": "pib:1712402", "section": "2", "quote": "On its way to Antarctica, the voyage team deployed four autonomous Ocean Observing DWS (Directional Wave Spectra) wave drifters between 35-degree and 50-degree south latitudes in collaboration with Indian National Centre for Ocean Information Services (INCOIS) Hyderabad.", "media": "maitri-aerial-2005" },
-      { "kind": "found", "title": "International cooperation on the return", "doc": "pib:1712402", "section": "4" },
-      { "kind": "data", "title": "Data from Bharati and Maitri" },
-      { "kind": "publications", "title": "The official record" },
-      { "kind": "media", "title": "Photographs" }
+      {
+        "kind": "why",
+        "title": "Four decades in Antarctica",
+        "doc": "pib:1685978",
+        "section": "1",
+        "media": "bharati-station"
+      },
+      {
+        "kind": "what",
+        "title": "A focused plan in a pandemic year",
+        "doc": "pib:1685978",
+        "section": "4",
+        "media": "schirmacher-landsat-2026"
+      },
+      {
+        "kind": "where",
+        "title": "Bharati and Maitri, in a short summer window",
+        "doc": "pib:1712402",
+        "section": "2",
+        "quote": "The team reached its destination station Bharati on February 27, 2021, and Maitri on March 08, 2021. Bharati and Maitri are India's permanent research base stations in Antarctica. The stations are approachable only during the austral summer season between November and March.",
+        "focus": {
+          "lat": -69.40678,
+          "lng": 76.19525,
+          "zoom": 5
+        }
+      },
+      {
+        "kind": "who",
+        "title": "The teams that stayed for the winter",
+        "doc": "pib:1712402",
+        "section": "3",
+        "media": "maitri-station"
+      },
+      {
+        "kind": "found",
+        "title": "Ocean observations on the way south",
+        "doc": "pib:1712402",
+        "section": "2",
+        "quote": "On its way to Antarctica, the voyage team deployed four autonomous Ocean Observing DWS (Directional Wave Spectra) wave drifters between 35-degree and 50-degree south latitudes in collaboration with Indian National Centre for Ocean Information Services (INCOIS) Hyderabad.",
+        "media": "maitri-aerial-2005"
+      },
+      {
+        "kind": "found",
+        "title": "International cooperation on the return",
+        "doc": "pib:1712402",
+        "section": "4"
+      },
+      {
+        "kind": "data",
+        "title": "Data from Bharati and Maitri"
+      },
+      {
+        "kind": "publications",
+        "title": "The official record"
+      },
+      {
+        "kind": "media",
+        "title": "Photographs"
+      }
     ],
     "indian-arctic-programme": [
-      { "kind": "why", "title": "Why India went north", "doc": "pib:r70423", "section": "1", "media": "himadri-station" },
-      { "kind": "what", "title": "What the programme set out to study", "doc": "pib:r70423", "section": "2" },
-      { "kind": "where", "title": "Himadri, the abode of snow", "doc": "ncpor:himadri", "section": "1", "focus": { "lat": 78.9167, "lng": 11.9333, "zoom": 7 } },
-      { "kind": "who", "title": "A multi-institution effort", "doc": "pib:2102740", "section": "1" },
-      { "kind": "found", "title": "What the first expedition found", "doc": "pib:r70423", "section": "5" },
-      { "kind": "found", "title": "Watching the fjord and the monsoon link", "doc": "pib:2102740", "section": "3" },
-      { "kind": "found", "title": "Staying through the Arctic winter", "doc": "pib:2102740", "section": "11" },
-      { "kind": "data", "title": "Data from Himadri" },
-      { "kind": "publications", "title": "The official record" },
-      { "kind": "media", "title": "Photographs" }
+      {
+        "kind": "why",
+        "title": "Why India went north",
+        "doc": "pib:r70423",
+        "section": "1",
+        "media": "himadri-station"
+      },
+      {
+        "kind": "what",
+        "title": "What the programme set out to study",
+        "doc": "pib:r70423",
+        "section": "2"
+      },
+      {
+        "kind": "where",
+        "title": "Himadri, the abode of snow",
+        "doc": "ncpor:himadri",
+        "section": "1",
+        "focus": {
+          "lat": 78.9167,
+          "lng": 11.9333,
+          "zoom": 7
+        }
+      },
+      {
+        "kind": "who",
+        "title": "A multi-institution effort",
+        "doc": "pib:2102740",
+        "section": "1"
+      },
+      {
+        "kind": "found",
+        "title": "What the first expedition found",
+        "doc": "pib:r70423",
+        "section": "5"
+      },
+      {
+        "kind": "found",
+        "title": "Watching the fjord and the monsoon link",
+        "doc": "pib:2102740",
+        "section": "3"
+      },
+      {
+        "kind": "found",
+        "title": "Staying through the Arctic winter",
+        "doc": "pib:2102740",
+        "section": "11"
+      },
+      {
+        "kind": "data",
+        "title": "Data from Himadri"
+      },
+      {
+        "kind": "publications",
+        "title": "The official record"
+      },
+      {
+        "kind": "media",
+        "title": "Photographs"
+      }
     ],
     "chandra-basin": [
-      { "kind": "why", "title": "The water tower of Asia", "doc": "pib:r151572", "section": "1", "media": "chandra-river-batal" },
-      { "kind": "what", "title": "What Himansh is for", "doc": "ncpor:himansh", "section": "6" },
-      { "kind": "where", "title": "Above 4,000 m in Spiti", "doc": "pib:r151572", "section": "2", "focus": { "lat": 32.4094, "lng": 77.6089, "zoom": 10 } },
-      { "kind": "who", "title": "The people behind the measurements", "doc": "pib:1941013", "section": "8" },
-      { "kind": "found", "title": "What the glaciers show", "doc": "pib:1941013", "section": "3" },
-      { "kind": "found", "title": "Why the meltwater matters", "doc": "ncpor:himansh", "section": "8" },
-      { "kind": "data", "title": "Data from Himansh" },
-      { "kind": "publications", "title": "The official record" },
-      { "kind": "media", "title": "Photographs" }
+      {
+        "kind": "why",
+        "title": "The water tower of Asia",
+        "doc": "pib:r151572",
+        "section": "1",
+        "media": "chandra-river-batal"
+      },
+      {
+        "kind": "what",
+        "title": "What Himansh is for",
+        "doc": "ncpor:himansh",
+        "section": "6"
+      },
+      {
+        "kind": "where",
+        "title": "Above 4,000 m in Spiti",
+        "doc": "pib:r151572",
+        "section": "2",
+        "focus": {
+          "lat": 32.4094,
+          "lng": 77.6089,
+          "zoom": 10
+        }
+      },
+      {
+        "kind": "who",
+        "title": "The people behind the measurements",
+        "doc": "pib:1941013",
+        "section": "8"
+      },
+      {
+        "kind": "found",
+        "title": "What the glaciers show",
+        "doc": "pib:1941013",
+        "section": "3"
+      },
+      {
+        "kind": "found",
+        "title": "Why the meltwater matters",
+        "doc": "ncpor:himansh",
+        "section": "8"
+      },
+      {
+        "kind": "data",
+        "title": "Data from Himansh"
+      },
+      {
+        "kind": "publications",
+        "title": "The official record"
+      },
+      {
+        "kind": "media",
+        "title": "Photographs"
+      }
     ]
   },
-
   "resources": [
-    { "title": "Maitri: live weather", "url": "https://data.ncpor.res.in/maitri/live", "kind": "live-data", "description": "Automatic weather station readings from Maitri, updated continuously.", "publisher": "NCPOR", "station": "maitri" },
-    { "title": "Maitri AWS dataset", "url": "https://data.ncpor.res.in/dataset/Maitriaws/", "kind": "dataset", "description": "Archived automatic weather station data from Maitri.", "publisher": "NCPOR", "station": "maitri" },
-    { "title": "Bharati: live weather", "url": "https://data.ncpor.res.in/bharati/live", "kind": "live-data", "description": "Weather readings from Bharati, updated continuously.", "publisher": "NCPOR", "station": "bharati" },
-    { "title": "Bharati AWS dataset", "url": "https://data.ncpor.res.in/dataset/Bharatiaws/", "kind": "dataset", "description": "Archived automatic weather station data from Bharati.", "publisher": "NCPOR", "station": "bharati" },
-    { "title": "Himadri: live weather", "url": "https://data.ncpor.res.in/himadri/live", "kind": "live-data", "description": "Automatic weather station readings from Himadri, Ny-Ålesund.", "publisher": "NCPOR", "station": "himadri" },
-    { "title": "Himansh: live weather", "url": "https://data.ncpor.res.in/himansh/live", "kind": "live-data", "description": "Automatic weather station readings from Himansh.", "publisher": "NCPOR", "station": "himansh" },
-    { "title": "Himansh dataset", "url": "https://data.ncpor.res.in/dataset/Himansh/", "kind": "dataset", "description": "Archived weather data from Himansh.", "publisher": "NCPOR", "station": "himansh" },
-    { "title": "Sutri Dhaka glacier mass balance", "url": "https://data.ncpor.res.in/himansh/mb/Sutri_Dhaka", "kind": "dataset", "description": "Mass balance measurements for Sutri Dhaka glacier in the Chandra basin.", "publisher": "NCPOR", "entry": "chandra-basin" },
-    { "title": "Dakshin Gangotri surface data, 1982–1990", "url": "https://data.ncpor.res.in/static/datasets/gangotri_surface_data_1982_1990.txt", "kind": "dataset", "description": "Daily surface meteorological records from India's first Antarctic base camp.", "publisher": "NCPOR", "entry": "dakshin-gangotri-1983" },
-    { "title": "NPDC: Antarctica", "url": "https://npdc.ncpor.res.in/npdc/antarctica_home.action", "kind": "portal", "description": "National Polar Data Center datasets and metadata from Indian Antarctic expeditions.", "publisher": "National Polar Data Center", "entry": "isea-40" },
-    { "title": "NPDC: Arctic", "url": "https://npdc.ncpor.res.in/npdc/arctic_home.action", "kind": "portal", "description": "National Polar Data Center datasets and metadata from Indian Arctic expeditions.", "publisher": "National Polar Data Center", "entry": "indian-arctic-programme" },
-    { "title": "NPDC: Himalaya", "url": "https://npdc.ncpor.res.in/npdc/himalaya_home.action", "kind": "portal", "description": "National Polar Data Center datasets and metadata from Himalayan studies.", "publisher": "National Polar Data Center", "entry": "chandra-basin" },
-    { "title": "National Polar Data Center", "url": "https://npdc.ncpor.res.in/npdc/homepage.action", "kind": "portal", "description": "India's official portal for polar and cryosphere datasets: search by keyword, location or expedition.", "publisher": "National Polar Data Center" },
-    { "title": "NCPOR meteorological data portal", "url": "https://data.ncpor.res.in/", "kind": "portal", "description": "Live and archived weather data from Maitri, Bharati, Himadri and Himansh.", "publisher": "NCPOR" },
-    { "title": "Antarctic surface station data", "url": "https://data.ncpor.res.in/ant_temp_pres", "kind": "dataset", "description": "Surface temperature and pressure records from Indian Antarctic stations.", "publisher": "NCPOR" },
-    { "title": "Cruise and voyage summaries", "url": "https://npdc.ncpor.res.in/npdc/cruiseSummary.jsp", "kind": "portal", "description": "Summaries of Indian scientific cruises and expedition voyages.", "publisher": "National Polar Data Center" },
-    { "title": "Polar directory", "url": "https://data.ncpor.res.in/PolarDirectory/", "kind": "portal", "description": "Directory of polar data holdings at NCPOR.", "publisher": "NCPOR" }
+    {
+      "title": "Maitri: live weather",
+      "url": "https://data.ncpor.res.in/maitri/live",
+      "kind": "live-data",
+      "description": "Automatic weather station readings from Maitri, updated continuously.",
+      "publisher": "NCPOR",
+      "station": "maitri"
+    },
+    {
+      "title": "Maitri AWS dataset",
+      "url": "https://data.ncpor.res.in/dataset/Maitriaws/",
+      "kind": "dataset",
+      "description": "Archived automatic weather station data from Maitri.",
+      "publisher": "NCPOR",
+      "station": "maitri"
+    },
+    {
+      "title": "Bharati: live weather",
+      "url": "https://data.ncpor.res.in/bharati/live",
+      "kind": "live-data",
+      "description": "Weather readings from Bharati, updated continuously.",
+      "publisher": "NCPOR",
+      "station": "bharati"
+    },
+    {
+      "title": "Bharati AWS dataset",
+      "url": "https://data.ncpor.res.in/dataset/Bharatiaws/",
+      "kind": "dataset",
+      "description": "Archived automatic weather station data from Bharati.",
+      "publisher": "NCPOR",
+      "station": "bharati"
+    },
+    {
+      "title": "Himadri: live weather",
+      "url": "https://data.ncpor.res.in/himadri/live",
+      "kind": "live-data",
+      "description": "Automatic weather station readings from Himadri, Ny-Ålesund.",
+      "publisher": "NCPOR",
+      "station": "himadri"
+    },
+    {
+      "title": "Himansh: live weather",
+      "url": "https://data.ncpor.res.in/himansh/live",
+      "kind": "live-data",
+      "description": "Automatic weather station readings from Himansh.",
+      "publisher": "NCPOR",
+      "station": "himansh"
+    },
+    {
+      "title": "Himansh dataset",
+      "url": "https://data.ncpor.res.in/dataset/Himansh/",
+      "kind": "dataset",
+      "description": "Archived weather data from Himansh.",
+      "publisher": "NCPOR",
+      "station": "himansh"
+    },
+    {
+      "title": "Sutri Dhaka glacier mass balance",
+      "url": "https://data.ncpor.res.in/himansh/mb/Sutri_Dhaka",
+      "kind": "dataset",
+      "description": "Mass balance measurements for Sutri Dhaka glacier in the Chandra basin.",
+      "publisher": "NCPOR",
+      "entry": "chandra-basin"
+    },
+    {
+      "title": "Dakshin Gangotri surface data, 1982–1990",
+      "url": "https://data.ncpor.res.in/static/datasets/gangotri_surface_data_1982_1990.txt",
+      "kind": "dataset",
+      "description": "Daily surface meteorological records from India's first Antarctic base camp.",
+      "publisher": "NCPOR",
+      "entry": "dakshin-gangotri-1983"
+    },
+    {
+      "title": "NPDC: Antarctica",
+      "url": "https://npdc.ncpor.res.in/npdc/antarctica_home.action",
+      "kind": "portal",
+      "description": "National Polar Data Center datasets and metadata from Indian Antarctic expeditions.",
+      "publisher": "National Polar Data Center",
+      "entry": "isea-40"
+    },
+    {
+      "title": "NPDC: Arctic",
+      "url": "https://npdc.ncpor.res.in/npdc/arctic_home.action",
+      "kind": "portal",
+      "description": "National Polar Data Center datasets and metadata from Indian Arctic expeditions.",
+      "publisher": "National Polar Data Center",
+      "entry": "indian-arctic-programme"
+    },
+    {
+      "title": "NPDC: Himalaya",
+      "url": "https://npdc.ncpor.res.in/npdc/himalaya_home.action",
+      "kind": "portal",
+      "description": "National Polar Data Center datasets and metadata from Himalayan studies.",
+      "publisher": "National Polar Data Center",
+      "entry": "chandra-basin"
+    },
+    {
+      "title": "National Polar Data Center",
+      "url": "https://npdc.ncpor.res.in/npdc/homepage.action",
+      "kind": "portal",
+      "description": "India's official portal for polar and cryosphere datasets: search by keyword, location or expedition.",
+      "publisher": "National Polar Data Center"
+    },
+    {
+      "title": "NCPOR meteorological data portal",
+      "url": "https://data.ncpor.res.in/",
+      "kind": "portal",
+      "description": "Live and archived weather data from Maitri, Bharati, Himadri and Himansh.",
+      "publisher": "NCPOR"
+    },
+    {
+      "title": "Antarctic surface station data",
+      "url": "https://data.ncpor.res.in/ant_temp_pres",
+      "kind": "dataset",
+      "description": "Surface temperature and pressure records from Indian Antarctic stations.",
+      "publisher": "NCPOR"
+    },
+    {
+      "title": "Cruise and voyage summaries",
+      "url": "https://npdc.ncpor.res.in/npdc/cruiseSummary.jsp",
+      "kind": "portal",
+      "description": "Summaries of Indian scientific cruises and expedition voyages.",
+      "publisher": "National Polar Data Center"
+    },
+    {
+      "title": "Polar directory",
+      "url": "https://data.ncpor.res.in/PolarDirectory/",
+      "kind": "portal",
+      "description": "Directory of polar data holdings at NCPOR.",
+      "publisher": "NCPOR"
+    }
   ],
-
   "documentTypes": {
     "pib:2102740": "parliament-answer",
     "pib:1941013": "parliament-answer",
@@ -173,5 +607,52 @@
     "ncpor:maitri": "station-profile",
     "ncpor:himadri": "station-profile",
     "ncpor:himansh": "station-profile"
+  },
+  "regions": [
+    {
+      "slug": "antarctica",
+      "label": "Antarctica",
+      "order": 1,
+      "blurb": "Indian expeditions since 1981. Two year-round research stations today: Maitri and Bharati."
+    },
+    {
+      "slug": "arctic",
+      "label": "Arctic",
+      "order": 2,
+      "blurb": "Himadri at Ny-Ålesund, Svalbard, since 2008, with winter expeditions since December 2023."
+    },
+    {
+      "slug": "himalaya",
+      "label": "Himalaya",
+      "order": 3,
+      "blurb": "Himansh, above 4,000 m in the Chandra basin, supports monitoring of six glaciers."
+    }
+  ],
+  "copy": {
+    "site.tagline": "India’s polar and Himalayan research, explained from the official record.",
+    "home.hero.eyebrow": "Featured story",
+    "home.hero.title": "Four decades on the ice.",
+    "home.hero.lede": "Follow the 40th Indian Scientific Expedition to Antarctica through the Government of India’s own account of the voyage.",
+    "home.pitch.title": "Official polar science, made clear.",
+    "home.pitch.body": "Every page quotes an official source and links to it. Plain-language summaries are available on request and are reviewed by NCPOR before publication.",
+    "home.live.title": "Conditions at the stations now",
+    "home.regions.eyebrow": "Where India works",
+    "home.regions.title": "Three frontiers of research",
+    "home.stories.eyebrow": "Stories",
+    "home.stories.title": "Expeditions, told chapter by chapter",
+    "home.notes.title": "Field notes",
+    "home.notes.lede": "Observations recorded by researchers at the stations, published after review.",
+    "home.data.eyebrow": "For researchers",
+    "home.data.title": "Official data portals",
+    "home.data.lede": "Polar Stories explains and links. Datasets are held and maintained by NCPOR and the National Polar Data Center.",
+    "explore.title": "Stations and expeditions",
+    "explore.lede": "Select a station on the map or an entry on the timeline to see its expeditions, official documents and data.",
+    "stories.title": "Expeditions, told chapter by chapter",
+    "stories.lede": "Each story sets out why an expedition or programme took place, where, who took part and what it found. Every chapter is quoted from an official source.",
+    "library.title": "Library",
+    "library.lede": "Every official document, photograph and data resource on Polar Stories, in one place.",
+    "footer.about": "Polar Stories presents the work of the National Centre for Polar and Ocean Research (NCPOR), Ministry of Earth Sciences, Government of India. Text is quoted from official sources with a link to each original. Datasets are held by the National Polar Data Center.",
+    "footer.credits": "Photographs: Government of India and Wikimedia Commons contributors, used under the licences shown with each image.",
+    "tour.steps": "[{\"title\":\"Find research by place and year\",\"body\":\"Choose a station on the map or an entry on the timeline to see expeditions, milestones and their official documents.\",\"href\":\"/explore\",\"cta\":\"Open the map\"},{\"title\":\"Read the stories\",\"body\":\"Each story follows one expedition or programme, chapter by chapter, quoting the official record.\",\"href\":\"/stories\",\"cta\":\"Browse stories\"},{\"title\":\"Ask for a plain-language summary\",\"body\":\"On any document, request a summary for students or the general public. Each summary cites the exact sections it draws on.\",\"href\":\"/library\",\"cta\":\"Open the library\"},{\"title\":\"Log observations in the field\",\"body\":\"Researchers can record notes and photos without a connection. Entries upload automatically and are published after review.\",\"href\":\"/field\",\"cta\":\"Open the field app\"}]"
   }
 }

@@ -5,15 +5,9 @@ import { useEffect, useRef, useState } from "react";
 
 const KEY = "polarstories.tour.v1";
 
-const STEPS = [
-  { title: "Explore by place and time", body: "Pick a station on the map or a year on the timeline to find expeditions, milestones and their sources.", href: "/explore", cta: "Open the map" },
-  { title: "Read the stories", body: "Each story walks through why an expedition went, where, who took part and what it found, quoting official records.", href: "/stories", cta: "See the stories" },
-  { title: "Explain it simply", body: "On any document, get a plain-language version for students or the public, and a social post. Every sentence cites the section it came from.", href: "/stories", cta: "Try it in a story" },
-  { title: "Log from the field, even offline", body: "Researchers at the stations can log notes and photos without a connection. They sync later and are published after review.", href: "/field", cta: "Open the Field app" },
-];
-
-/** A four-step introduction shown once to first-time visitors; it can be reopened from the footer. */
-export function WelcomeTour() {
+/** A short introduction (steps come from the database) shown once to first-time visitors; it can be reopened from the footer. */
+export function WelcomeTour({ steps }: { steps: { title: string; body: string; href: string; cta: string }[] }) {
+  const STEPS = steps;
   const [step, setStep] = useState<number | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
 
@@ -21,7 +15,7 @@ export function WelcomeTour() {
     const open = () => setStep(0);
     window.addEventListener("polarstories:tour", open);
     try {
-      if (!localStorage.getItem(KEY)) setStep(0);
+      if (!localStorage.getItem(KEY) && STEPS.length) setStep(0);
     } catch {
       /* storage unavailable: skip the tour */
     }

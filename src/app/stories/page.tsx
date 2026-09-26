@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getSiteContent } from "@/lib/copy";
 import { stationPhotos } from "@/lib/queries";
 import { regionColor, regionLabel } from "@/lib/regions";
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = { title: "Stories", description: "Expedition s
 export const dynamic = "force-dynamic";
 
 export default async function StoriesPage() {
+  const { t } = await getSiteContent();
   const [stories, photos] = await Promise.all([
     db.expedition.findMany({
       where: { hasStory: true },
@@ -20,11 +22,8 @@ export default async function StoriesPage() {
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
       <p className="eyebrow">Stories</p>
-      <h1 className="font-serif text-4xl md:text-5xl tracking-tight">Science told chapter by chapter</h1>
-      <p className="text-ink-2 mt-3 max-w-2xl">
-        Each story follows one expedition or programme: why it happened, what it studied, where, who took part, and what it found. Every chapter
-        quotes an official source and links to it.
-      </p>
+      <h1 className="font-serif text-4xl md:text-5xl tracking-tight">{t("stories.title")}</h1>
+      <p className="text-ink-2 mt-3 max-w-2xl">{t("stories.lede")}</p>
       <ul className="mt-10 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {stories.map((s) => {
           const photo = s.stationId ? photos.get(s.stationId) : undefined;
