@@ -21,7 +21,7 @@ export function Logo() {
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-[1000] bg-paper/85 backdrop-blur border-b border-line">
+    <header className="no-print sticky top-0 z-[1000] bg-paper/85 backdrop-blur border-b border-line">
       <div className="mx-auto max-w-6xl px-5 h-16 flex items-center gap-6">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Logo />

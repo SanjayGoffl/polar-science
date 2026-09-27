@@ -110,8 +110,22 @@ export function StoryView({ story }: { story: StoryData }) {
 
   return (
     <article>
+      {/* Print-only masthead: the cover below is decorative and hidden from the handout. */}
+      <div className="hidden print:block px-5 pt-4">
+        <p className="text-xs text-muted">
+          {regionLabel(story.region)}
+          {story.station ? ` · ${story.station.name}` : ""}
+          {story.season ? ` · ${story.season}` : ""}
+        </p>
+        <h1 className="font-serif text-3xl tracking-tight mt-1">{story.name}</h1>
+        <p className="mt-2 text-ink-2">{story.summary}</p>
+        <p className="mt-1 text-xs text-muted">
+          Source: <a href={story.sourceUrl}>{story.sourceUrl}</a>
+        </p>
+      </div>
+
       {/* Cover */}
-      <header className="relative isolate min-h-[80vh] flex items-end text-white overflow-hidden">
+      <header className="no-print relative isolate min-h-[80vh] flex items-end text-white overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <Backdrop image={story.hero} region={story.region} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07121a] via-[#07121a]/50 to-transparent" />
@@ -135,7 +149,7 @@ export function StoryView({ story }: { story: StoryData }) {
       </header>
 
       {/* Chapter rail */}
-      <nav aria-label="Chapters" className="sticky top-[92px] md:top-16 z-[900] bg-paper/90 backdrop-blur border-b border-line">
+      <nav aria-label="Chapters" className="no-print sticky top-[92px] md:top-16 z-[900] bg-paper/90 backdrop-blur border-b border-line">
         <ol className="mx-auto max-w-6xl px-5 flex gap-1 overflow-x-auto scroll-x py-2">
           {story.chapters.map((c, i) => (
             <li key={c.id}>
@@ -203,7 +217,7 @@ export function StoryView({ story }: { story: StoryData }) {
 
         {/* Sticky visual */}
         {desktop && (
-          <div>
+          <div className="no-print">
             <div className="sticky top-32 h-[calc(100vh-10rem)] my-10 rounded-2xl overflow-hidden border border-line bg-ice">
               {scrolly.map((c) => {
                 const i = idx(c.id);
@@ -299,7 +313,7 @@ export function StoryView({ story }: { story: StoryData }) {
       })}
 
       {/* Continue */}
-      <section className="mx-auto max-w-6xl px-5 pt-10">
+      <section className="no-print mx-auto max-w-6xl px-5 pt-10">
         <div className="card p-8 grid md:grid-cols-[1fr_auto] gap-6 items-center">
           <div>
             <p className="eyebrow">Keep exploring</p>
@@ -317,6 +331,20 @@ export function StoryView({ story }: { story: StoryData }) {
           </div>
         </div>
       </section>
+
+      <PrintButton />
     </article>
+  );
+}
+
+function PrintButton() {
+  return (
+    <button
+      onClick={() => window.print()}
+      className="no-print btn btn-ghost fixed bottom-5 right-5 z-[900] shadow-lg bg-paper"
+      aria-label="Print this story or save it as a PDF, with citations"
+    >
+      🖨️ Print / save as PDF
+    </button>
   );
 }

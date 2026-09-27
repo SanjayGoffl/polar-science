@@ -92,3 +92,13 @@ body {
   html { scroll-behavior: auto; }
   .pin.active .pin-ring, .fade-in { animation: none; }
 }
+
+/* Printable handout: one clean column of the story's text and citations, no chrome. */
+@media print {
+  .no-print { display: none !important; }
+  html, body { background: #fff; }
+  a { color: inherit; text-decoration: underline; }
+  .card, blockquote { border-color: #999 !important; }
+  section { min-height: 0 !important; page-break-inside: avoid; padding: 1rem 0 !important; }
+  .lg\:grid { display: block !important; }
+}
