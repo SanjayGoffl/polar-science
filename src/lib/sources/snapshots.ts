@@ -18,7 +18,7 @@ export interface Snapshot {
 
 export type LoadedDoc = Snapshot & { sections: BuiltSection[] };
 
-export const SYSTEMS = ["pib", "ncpor"] as const;
+export const SYSTEMS = ["pib", "ncpor", "ncpor-pdf"] as const;
 
 export function loadSnapshots(root = "data/sources") {
   const docs = new Map<string, LoadedDoc>();

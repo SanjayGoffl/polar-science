@@ -4,12 +4,16 @@
 //   node scripts/import-sources.mjs pib:1712402     add/refresh a PIB release by PRID
 //   node scripts/import-sources.mjs pib:r151572     older PIB releases use a relid (prefix "r")
 //   node scripts/import-sources.mjs ncpor:maitri=https://ncpor.res.in/antarcticas/display/376-maitri-
+//   node scripts/import-sources.mjs ncpor-pdf:isea-40-report=https://ncpor.res.in/.../isea-40-report.pdf
+//                                                    an NCPOR expedition-report PDF; text is extracted with pdf-parse
+//                                                    and split into paragraphs the same way sources:sync sections HTML
 //
 // Snapshots live in data/sources/<system>/<id>.json with the source URL, retrieval time and a
 // content hash. `npm run sources:sync` loads them into the database; it never uses the network.
 // A snapshot is only rewritten when the source text actually changed.
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { PDFParse } from "pdf-parse";
 
 const ROOT = "data/sources";
 const REGISTRY = `${ROOT}/registry.json`;
@@ -75,13 +79,79 @@ export function parseNcpor(html) {
   return { title, organisation: "National Centre for Polar and Ocean Research (NCPOR)", publishedOn: null, paragraphs: paragraphsOf(main) };
 }
 
+/* ------------------------------ NCPOR expedition-report PDFs ------------- */
+
+// Headers/footers/page numbers repeated on every page are not content.
+const PDF_NOISE = [...NOISE, /^page\s+\d+(\s+of\s+\d+)?$/i, /^\d{1,4}$/, /^national centre for polar and ocean research$/i, /^ncpor\b.{0,20}\breport$/i];
+const keepPdfParagraph = (p) => p.split(" ").length >= 6 && !PDF_NOISE.some((re) => re.test(p));
+
+/** PDFs hard-wrap lines within a paragraph; blank lines separate paragraphs. */
+function paragraphsFromPdfText(raw) {
+  const lines = raw.split(/\r?\n/).map((l) => l.trim());
+  const blocks = [];
+  let current = [];
+  for (const line of lines) {
+    if (!line) {
+      if (current.length) blocks.push(current.join(" "));
+      current = [];
+      continue;
+    }
+    if (PDF_NOISE.some((re) => re.test(line))) continue;
+    current.push(line);
+  }
+  if (current.length) blocks.push(current.join(" "));
+  return blocks.map((b) => decode(b).replace(/\s+/g, " ").trim()).filter(keepPdfParagraph);
+}
+
+const PDF_MONTHS = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*";
+function pdfDate(info) {
+  // pdf.js metadata dates look like "D:20230114120000Z"; fall back to null rather than guess.
+  const m = /^D:(\d{4})(\d{2})(\d{2})/.exec(info?.CreationDate ?? "");
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : null;
+}
+
+export async function parseNcporPdf(buffer) {
+  const parser = new PDFParse({ data: buffer });
+  try {
+    const info = await parser.getInfo();
+    const { text: rawText } = await parser.getText();
+    const paragraphs = paragraphsFromPdfText(rawText);
+    let title = (info.info?.Title ?? "").trim();
+    // Many government PDFs carry no Title metadata; fall back to the report's own opening words.
+    if ((!title || /^(microsoft word|untitled)/i.test(title)) && paragraphs.length) {
+      const first = paragraphs[0];
+      if (first.split(" ").length <= 24) title = paragraphs.shift();
+      else {
+        // Truncate to the first sentence, or the nearest word boundary under 90 chars.
+        const sentence = first.split(/(?<=[.!?])\s/)[0];
+        title = sentence.length <= 90 ? sentence : sentence.slice(0, sentence.slice(0, 90).lastIndexOf(" ")) + "…";
+      }
+    }
+    return { title, organisation: "National Centre for Polar and Ocean Research (NCPOR)", publishedOn: pdfDate(info.info), paragraphs };
+  } finally {
+    await parser.destroy();
+  }
+}
+
 /* ------------------------------ fetch ------------------------------------ */
 
 /** Government sites drop connections now and then; retry a few times before giving up. */
 async function fetchHtml(url) {
   for (let attempt = 1; ; attempt++) {
     try {
-      return await fetchOnce(url);
+      return await fetchOnce(url, "text");
+    } catch (err) {
+      if (attempt >= 4 || /HTTP 4\d\d/.test(err.message)) throw err;
+      await new Promise((r) => setTimeout(r, 1500 * attempt));
+    }
+  }
+}
+
+/** Same retry policy as fetchHtml, for binary PDF downloads. */
+async function fetchBinary(url) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetchOnce(url, "buffer");
     } catch (err) {
       if (attempt >= 4 || /HTTP 4\d\d/.test(err.message)) throw err;
       await new Promise((r) => setTimeout(r, 1500 * attempt));
@@ -90,7 +160,7 @@ async function fetchHtml(url) {
 }
 
 /** Follows redirects by hand so session cookies set on the way (PIB does this) are kept. */
-async function fetchOnce(url) {
+async function fetchOnce(url, mode) {
   let cookie = "";
   for (let hop = 0; hop < 6; hop++) {
     const res = await fetch(url, { headers: { "User-Agent": UA, "Accept-Language": "en", Cookie: cookie }, redirect: "manual", signal: AbortSignal.timeout(40_000) });
@@ -101,7 +171,7 @@ async function fetchOnce(url) {
       continue;
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return { html: await res.text(), finalUrl: url };
+    return mode === "buffer" ? { buffer: Buffer.from(await res.arrayBuffer()), finalUrl: url } : { html: await res.text(), finalUrl: url };
   }
   throw new Error("too many redirects");
 }
@@ -109,27 +179,28 @@ async function fetchOnce(url) {
 const SYSTEMS = {
   pib: { publisher: "Press Information Bureau, Government of India", url: (e) => pibUrl(e.id), parse: parsePib },
   ncpor: { publisher: "National Centre for Polar and Ocean Research", url: (e) => e.url, parse: parseNcpor },
+  "ncpor-pdf": { publisher: "National Centre for Polar and Ocean Research", url: (e) => e.url, parse: parseNcporPdf, binary: true },
 };
 
 async function importOne(entry) {
   const sys = SYSTEMS[entry.system];
   if (!sys) throw new Error(`unknown system ${entry.system}`);
   const url = sys.url(entry);
-  const { html, finalUrl } = await fetchHtml(url);
-  const parsed = sys.parse(html);
+  const fetched = sys.binary ? await fetchBinary(url) : await fetchHtml(url);
+  const parsed = await sys.parse(sys.binary ? fetched.buffer : fetched.html);
   if (!parsed.title || parsed.paragraphs.length === 0) throw new Error("could not parse document");
   const contentHash = createHash("sha256").update(parsed.title + "\n" + parsed.paragraphs.join("\n")).digest("hex").slice(0, 16);
   mkdirSync(`${ROOT}/${entry.system}`, { recursive: true });
   const file = `${ROOT}/${entry.system}/${entry.id}.json`;
   const prev = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : null;
   if (prev?.contentHash === contentHash) return "unchanged";
-  const snapshot = { sourceSystem: entry.system, sourceId: entry.id, url, fetchedFrom: finalUrl, retrievedAt: new Date().toISOString(), contentHash, publisher: sys.publisher, ...parsed };
+  const snapshot = { sourceSystem: entry.system, sourceId: entry.id, url, fetchedFrom: fetched.finalUrl, retrievedAt: new Date().toISOString(), contentHash, publisher: sys.publisher, ...parsed };
   writeFileSync(file, JSON.stringify(snapshot, null, 2) + "\n");
   return prev ? "updated" : "added";
 }
 
 function parseArg(arg) {
-  const m = /^(pib|ncpor):([a-z0-9-]+)(?:=(https?:\/\/\S+))?$/i.exec(arg);
+  const m = /^(pib|ncpor|ncpor-pdf):([a-z0-9-]+)(?:=(https?:\/\/\S+))?$/i.exec(arg);
   if (!m) throw new Error(`bad argument ${arg}`);
   return { system: m[1], id: m[2], ...(m[3] ? { url: m[3] } : {}) };
 }

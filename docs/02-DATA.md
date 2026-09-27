@@ -11,6 +11,7 @@ All public content comes from official sources, and is shown verbatim with a lin
 |---|---|---|
 | `pib` | Press Information Bureau (Government of India) releases and answers to Parliament questions from the Ministry of Earth Sciences | `data/sources/pib/<PRID or r<relid>>.json` |
 | `ncpor` | NCPOR station pages (Maitri, Himadri, Himansh) and one NCPOR news item that gives Bharati's and Maitri's coordinates | `data/sources/ncpor/<id>.json` |
+| `ncpor-pdf` | NCPOR expedition-report PDFs, text-extracted and split into sections the same way | `data/sources/ncpor-pdf/<id>.json` |
 | Wikimedia Commons | Licensed photographs (GODL-India, CC BY-SA, public domain), each with author, licence and file page | `data/sources/media.json` + `public/images/photos/` |
 | NCPOR / NPDC portals | Links to live weather, datasets and data portals, each checked for HTTP 200 when added | `resources` in `data/sources/editorial.json` |
 | NCPOR live weather | Current air temperature at the four stations, read at request time and cached for 15 min | not stored |
@@ -24,10 +25,12 @@ official site ──import-sources.mjs──▶ data/sources/<system>/<id>.json 
                  (network, on demand)   (versioned in git, reviewable)     (no network, idempotent)
 ```
 
-1. **Import:** `npm run sources:fetch`, or add one document with `node scripts/import-sources.mjs pib:<PRID>`, `pib:r<relid>`, or `ncpor:<id>=<url>`.
+1. **Import:** `npm run sources:fetch`, or add one document with `node scripts/import-sources.mjs pib:<PRID>`, `pib:r<relid>`, `ncpor:<id>=<url>`, or `ncpor-pdf:<id>=<url>` for an expedition-report PDF.
    - The script fetches the page and extracts the paragraphs, dropping sign-offs, captions and site chrome.
+   - PDFs are extracted with `pdf-parse`: text is regrouped into paragraphs at blank lines (PDFs hard-wrap within a paragraph), and repeated headers/footers/page numbers are dropped the same way HTML sign-offs are. The title comes from the PDF's own metadata, or the report's opening words when that metadata is missing.
    - It rewrites the snapshot only if the content hash changed.
    - It retries flaky connections, and follows PIB's cookie redirect.
+   - As with HTML sources, the sync step's verbatim-quote check (`resolveQuote`) applies unchanged to PDF-derived paragraphs: a new timeline entry can only cite text that appears exactly in the extracted sections.
 2. **Curate:** `data/sources/editorial.json` maps the sources onto the site:
    - stations
    - timeline entries (expeditions, programmes, milestones)

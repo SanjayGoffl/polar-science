@@ -82,7 +82,7 @@ async function main() {
         slug: `${slugify(doc.title).slice(0, 70).replace(/-$/, "")}-${doc.sourceSystem}-${doc.sourceId.toLowerCase()}`,
         expeditionId: entryIds.get(e.slug)!,
         title: doc.title,
-        type: ed.documentTypes[key] ?? (doc.sourceSystem === "pib" ? "press-release" : "station-profile"),
+        type: ed.documentTypes[key] ?? (doc.sourceSystem === "pib" ? "press-release" : doc.sourceSystem === "ncpor-pdf" ? "expedition-report" : "station-profile"),
         publisher: doc.organisation && doc.organisation !== doc.publisher ? `${doc.organisation} · ${doc.publisher}` : doc.publisher,
         publishedOn: new Date(doc.publishedOn ?? doc.retrievedAt),
         abstract: doc.sections[0].body.split(/(?<=\.)\s/).slice(0, 2).join(" "),
@@ -177,6 +177,7 @@ async function main() {
   }
 
   // Full-text search index: rebuilt from scratch every sync (see prisma/migrations/20260927160000_search_fts).
+  // All values below go through `?` placeholders, never string interpolation, despite the "Unsafe" name.
   await db.$executeRawUnsafe(`DELETE FROM "SearchIndex"`);
   const insertIndex = (row: { entityType: string; entityId: string; title: string; body: string; subtitle: string; url: string; region: string | null; year: number | null }) =>
     db.$executeRawUnsafe(
