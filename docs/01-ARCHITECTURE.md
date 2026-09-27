@@ -14,6 +14,7 @@ Polar Stories is a single Next.js 16 application (App Router, TypeScript, React 
 | Offline field app | `src/components/field`, `src/lib/offline`, `public/sw.js` | IndexedDB queue (Dexie), sync engine, service worker for offline page loads |
 | Live weather | `src/lib/liveWeather.ts` | Reads current temperatures from NCPOR's data portal (15-minute cache); fails quietly |
 | Map and timeline | `src/components/map`, `src/components/timeline`, `src/components/explore` | Leaflet map (Esri light-grey tiles), a timeline linked to the map, URL-synced state |
+| Share cards | `src/app/**/opengraph-image.tsx`, `src/lib/og.tsx` | Open Graph images for stations, expeditions, stories and reports, rendered with Next.js `ImageResponse`; each shows the title, one verbatim quote already stored in the database, and the source line — no invented text |
 
 ## AI design
 
