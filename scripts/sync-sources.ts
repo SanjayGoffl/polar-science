@@ -176,6 +176,65 @@ async function main() {
     }
   }
 
+  // Full-text search index: rebuilt from scratch every sync (see prisma/migrations/20260927160000_search_fts).
+  await db.$executeRawUnsafe(`DELETE FROM "SearchIndex"`);
+  const insertIndex = (row: { entityType: string; entityId: string; title: string; body: string; subtitle: string; url: string; region: string | null; year: number | null }) =>
+    db.$executeRawUnsafe(
+      `INSERT INTO "SearchIndex" (entityType, entityId, title, body, subtitle, url, region, year) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      row.entityType,
+      row.entityId,
+      row.title,
+      row.body,
+      row.subtitle,
+      row.url,
+      row.region,
+      row.year,
+    );
+
+  for (const s of ed.stations) {
+    const desc = resolveQuote(docs, s.description, `station ${s.slug}`);
+    await insertIndex({
+      entityType: "station",
+      entityId: stationIds.get(s.slug)!,
+      title: s.name,
+      body: desc.text,
+      subtitle: s.location,
+      url: `/stations/${s.slug}`,
+      region: s.region,
+      year: null,
+    });
+  }
+  for (const e of ed.entries) {
+    const summary = resolveQuote(docs, e.summary, `entry ${e.slug}`);
+    const hasStory = !!ed.stories[e.slug]?.length;
+    await insertIndex({
+      entityType: "expedition",
+      entityId: entryIds.get(e.slug)!,
+      title: e.name,
+      body: summary.text,
+      subtitle: `${e.year}${e.season ? ` · ${e.season}` : ""}`,
+      url: hasStory ? `/expeditions/${e.slug}/story` : `/expeditions/${e.slug}`,
+      region: e.region,
+      year: e.year,
+    });
+  }
+  for (const [key, reportId] of reportIds) {
+    const doc = docs.get(key)!;
+    const report = await db.report.findUniqueOrThrow({ where: { id: reportId }, select: { slug: true, title: true, expedition: { select: { region: true } } } });
+    for (const s of doc.sections) {
+      await insertIndex({
+        entityType: "section",
+        entityId: `${reportId}:${s.number}`,
+        title: report.title,
+        body: `${s.heading}. ${s.body}`,
+        subtitle: `§${s.number} ${s.heading}`,
+        url: `/reports/${report.slug}#section-${s.number}`,
+        region: report.expedition.region,
+        year: doc.publishedOn ? new Date(doc.publishedOn).getFullYear() : null,
+      });
+    }
+  }
+
   // Regions and site copy.
   for (const r of ed.regions) {
     await db.region.upsert({ where: { slug: r.slug }, update: { label: r.label, blurb: r.blurb, order: r.order }, create: r });

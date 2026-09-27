@@ -23,7 +23,7 @@ Each flow below is covered by an automated test (`tests/e2e`, run against a prod
    - A "Based on" box lists the cited sections; clicking one scrolls to it in the text, and cited sections are marked.
    - The panel labels the provider and model, and whether the text has been reviewed.
 4. **Social caption:** a draft post with a character count. **Copy post** copies the text, the hashtags, the section citation and the original URL. *(user-flows.spec)*
-5. **Search** (`/search?q=`): matches stations, timeline entries, document sections (showing the matching excerpt) and published field notes.
+5. **Search** (`/search?q=&region=&year=`): full-text (FTS5) matches over stations, timeline entries and document sections, with highlighted excerpts and region/year filters, plus plain matches on published field notes, photos and data resources.
 
 ## Researcher
 - Station pages show:

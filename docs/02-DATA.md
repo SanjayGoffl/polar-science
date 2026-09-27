@@ -39,6 +39,7 @@ official site ──import-sources.mjs──▶ data/sources/<system>/<id>.json 
    - Paragraphs become numbered sections (`src/lib/sources/sections.ts`). List items join the paragraph that introduces them, and headings are the section's own opening words.
    - Every quoted passage in the editorial file must appear verbatim in the named section, or the sync stops with an error.
    - Rows are upserted on natural keys, so re-running changes nothing.
+   - The full-text search index (`SearchIndex`, a SQLite FTS5 virtual table, see `prisma/migrations/20260927160000_search_fts`) is deleted and rebuilt every sync from the same station, expedition and report-section rows, so it never drifts. Search matches use FTS5's native `term*` prefix matching (the default `unicode61` tokenizer); true misspelling correction would need the `spellfix1` extension, which isn't bundled with `better-sqlite3`, so it's out of scope for now.
 
 ## Deduplication and updates
 
