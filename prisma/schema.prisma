@@ -76,6 +76,7 @@ model StoryChapter {
   lng             Float?
   zoom            Int?
   mediaId         String?
+  media           Media?     @relation(fields: [mediaId], references: [id], onDelete: SetNull)
 }
 
 /// An official source document (press release, report, publication), stored section by section.
@@ -134,6 +135,7 @@ model Media {
   station      Station?    @relation(fields: [stationId], references: [id], onDelete: SetNull)
   expeditionId String?
   expedition   Expedition? @relation(fields: [expeditionId], references: [id], onDelete: SetNull)
+  chapters     StoryChapter[]
 }
 
 /// Official data portal, dataset, live-data page or repository.

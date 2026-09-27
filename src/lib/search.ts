@@ -28,7 +28,10 @@ function toMatchQuery(q: string): string | null {
   return terms.join(" ");
 }
 
-/** Full-text search over stations, expeditions and report sections (see prisma/migrations/20260927160000_search_fts). */
+/**
+ * Full-text search over stations, expeditions and report sections (see prisma/migrations/20260927160000_search_fts).
+ * Ranked by bm25 with a title match weighted 10x a body match, so "Maitri" finds the station before passing mentions.
+ */
 export async function searchIndex(filters: SearchFilters): Promise<SearchHit[]> {
   const match = toMatchQuery(filters.q);
   if (!match) return [];
@@ -44,6 +47,8 @@ export async function searchIndex(filters: SearchFilters): Promise<SearchHit[]> 
     params.push(filters.year);
   }
 
+  // "Unsafe" only refers to Prisma not knowing the query shape at compile time; every value
+  // (match, region, year) is passed as a `?` placeholder below, never string-interpolated.
   const rows = await db.$queryRawUnsafe<
     { entityType: string; entityId: string; title: string; subtitle: string; url: string; region: string | null; year: number | null; snippet: string }[]
   >(
@@ -51,7 +56,7 @@ export async function searchIndex(filters: SearchFilters): Promise<SearchHit[]> 
             snippet("SearchIndex", 3, char(1), char(2), '…', 12) AS snippet
      FROM "SearchIndex"
      WHERE ${conditions.join(" AND ")}
-     ORDER BY rank
+     ORDER BY bm25("SearchIndex", 0, 0, 10.0, 1.0, 0, 0, 0, 0)
      LIMIT 40`,
     ...params,
   );

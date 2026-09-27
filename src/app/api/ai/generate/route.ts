@@ -43,6 +43,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ...result, canRegenerate: admin });
   } catch (err) {
     console.error("[ai/generate]", err);
-    return NextResponse.json({ error: "Couldn't generate a grounded version right now. Please try again." }, { status: 502 });
+    return NextResponse.json({ error: "Couldn't generate a summary right now. Please try again in a moment." }, { status: 502 });
   }
 }

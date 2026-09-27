@@ -60,7 +60,20 @@ function Camera({ view, focus }: { view: RegionView; focus?: MapFocus | null }) 
       if (lat != null && lng != null) map.flyTo([lat, lng], zoom ?? 6, { duration: reduce ? 0 : 1.4, animate: !reduce });
       else map.flyToBounds(REGION_BOUNDS[view], { duration: reduce ? 0 : 1.2, padding: [30, 30], animate: !reduce });
     };
-    move(true);
+
+    // Leaflet measures its container the instant it mounts, which can race the browser's own
+    // layout pass (webfonts, CSS still applying) and freeze in with a 0-size or stale viewport,
+    // so no tiles ever get requested until something else forces a reflow. A couple of
+    // invalidateSize() calls on the next frames (cheap no-ops once sized correctly) close that race.
+    const raf1 = requestAnimationFrame(() => {
+      map.invalidateSize();
+      const raf2 = requestAnimationFrame(() => {
+        map.invalidateSize();
+        move(true);
+      });
+      cleanupRaf2 = () => cancelAnimationFrame(raf2);
+    });
+    let cleanupRaf2: (() => void) | undefined;
 
     // When the container is revealed or resized, re-measure and re-frame.
     let wasEmpty = !map.getSize().x;
@@ -71,7 +84,11 @@ function Camera({ view, focus }: { view: RegionView; focus?: MapFocus | null }) 
       wasEmpty = empty;
     });
     ro.observe(map.getContainer());
-    return () => ro.disconnect();
+    return () => {
+      cancelAnimationFrame(raf1);
+      cleanupRaf2?.();
+      ro.disconnect();
+    };
   }, [map, view, lat, lng, zoom]);
   return null;
 }

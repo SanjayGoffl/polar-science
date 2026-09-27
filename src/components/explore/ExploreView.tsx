@@ -9,13 +9,14 @@ import { ExpeditionTimeline } from "@/components/timeline/ExpeditionTimeline";
 import { ENTRY_KIND_LABEL, REGIONS, regionColor, regionLabel, type Region, type RegionView } from "@/lib/regions";
 
 function Photo({ photo, region }: { photo: { url: string; alt: string; credit: string } | null; region: string }) {
-  return photo ? (
+  const [failed, setFailed] = useState(false);
+  const fallback = <span className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${regionColor(region)}, #07121a)` }} />;
+  if (!photo || failed) return fallback;
+  return (
     <>
-      <Image src={photo.url} alt={photo.alt} fill className="object-cover" sizes="380px" />
+      <Image src={photo.url} alt={photo.alt} fill className="object-cover" sizes="380px" onError={() => setFailed(true)} />
       <span className="absolute right-2 bottom-2 rounded bg-black/55 px-1.5 py-0.5 text-[9px] text-white/85">{photo.credit}</span>
     </>
-  ) : (
-    <span className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${regionColor(region)}, #07121a)` }} />
   );
 }
 
