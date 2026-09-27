@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { extractJson, LLMError, type LLMClient } from "./llm";
 import { captionPrompt, explainPrompt } from "./prompts";
-import type { AIProvider, SourceDocument } from "./types";
+import type { AIProvider, Language, SourceDocument } from "./types";
 
 const str = z.string().trim().min(1);
 const sectionRefs = z.array(z.union([z.string(), z.number()]).transform(String)).min(1);
@@ -42,7 +42,9 @@ export function llmProvider(client: LLMClient): AIProvider {
 
   return {
     name: client.name,
-    explain: (doc: SourceDocument, audience) => run(ExplanationSchema, explainPrompt(doc, audience), 900),
-    caption: (doc: SourceDocument) => run(CaptionSchema, captionPrompt(doc), 300),
+    // Hosted models can write Hindi directly; only the offline extractive summariser can't.
+    supportsLanguage: (_language: Language) => true,
+    explain: (doc: SourceDocument, audience, language: Language = "en") => run(ExplanationSchema, explainPrompt(doc, audience, language), 900),
+    caption: (doc: SourceDocument, language: Language = "en") => run(CaptionSchema, captionPrompt(doc, language), 300),
   };
 }

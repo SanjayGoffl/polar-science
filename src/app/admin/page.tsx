@@ -38,7 +38,7 @@ export default async function AdminPage() {
       id: a.id,
       status: a.reviewStatus,
       at: a.generatedAt.toISOString(),
-      title: a.kind === "caption" ? "Social caption" : `Plain-language explanation · ${a.audience === "student" ? "students" : "general public"}`,
+      title: `${a.kind === "caption" ? "Social caption" : `Plain-language explanation · ${a.audience === "student" ? "students" : "general public"}`}${a.language && a.language !== "en" ? ` · ${a.language === "hi" ? "Hindi" : a.language}` : ""}`,
       body: a.text,
       meta: `${a.provider === "offline" ? "Offline summariser" : `${a.provider === "gemini" ? "Gemini" : "OpenRouter"} · ${a.model}`} · generated ${a.generatedAt.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`,
       edited: a.editedByReviewer,

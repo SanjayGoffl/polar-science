@@ -7,11 +7,14 @@ import { clientKey, rateLimit } from "@/lib/rateLimit";
 export const runtime = "nodejs";
 
 const AUDIENCES = { explanation: ["student", "public"], caption: ["social"] } as const;
+const LANGUAGES = ["en", "hi"] as const;
+type Language = (typeof LANGUAGES)[number];
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const kind = body?.kind as keyof typeof AUDIENCES;
   const audience = body?.audience;
+  const language: Language = LANGUAGES.includes(body?.language) ? body.language : "en";
   if (typeof body?.reportId !== "string" || !(kind in AUDIENCES) || !(AUDIENCES[kind] as readonly string[]).includes(audience)) {
     return NextResponse.json({ error: "Expected { reportId, kind: explanation|caption, audience }" }, { status: 400 });
   }
@@ -21,7 +24,7 @@ export async function POST(req: Request) {
 
   // Cache lookups are free: they never call a model.
   if (body.cachedOnly) {
-    const content = await getCachedForReport({ reportId: body.reportId, kind, audience });
+    const content = await getCachedForReport({ reportId: body.reportId, kind, audience, language });
     return NextResponse.json({ content, cached: true, fallbackReason: null, canRegenerate: await isAdmin() });
   }
 
@@ -36,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await generateForReport({ reportId: body.reportId, kind, audience, regenerate });
+    const result = await generateForReport({ reportId: body.reportId, kind, audience, language, regenerate });
     return NextResponse.json({ ...result, canRegenerate: admin });
   } catch (err) {
     console.error("[ai/generate]", err);

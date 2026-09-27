@@ -44,7 +44,8 @@ First e2e run: `npx playwright install chromium`.
 With no keys set, the offline summariser is used. It extracts and simplifies real sentences, and still cites them.
 
 - **Order:** OpenRouter `google/gemma-4-31b-it:free`, then `openrouter/free`, then Gemini (optional), then the offline summariser.
-- **Caching:** outputs are cached per document and audience until the document text changes.
+- **Caching:** outputs are cached per document, audience and language until the document text changes.
+- **Language:** the plain-language summary can be generated in English or Hindi (हिंदी), on request, from the report page. Hindi needs a live provider (OpenRouter or Gemini) — the offline summariser is English-only.
 
 The details are in `docs/01-ARCHITECTURE.md`.
 

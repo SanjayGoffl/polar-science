@@ -4,7 +4,7 @@ import { createGeminiClient, createOpenRouterClient } from "./llm";
 import { createOfflineProvider, focusSections } from "./offline";
 import { PROMPT_VERSION } from "./prompts";
 import { llmProvider } from "./structured";
-import type { AIKind, AIProvider, SourceDocument } from "./types";
+import type { AIKind, AIProvider, Language, SourceDocument } from "./types";
 import { normaliseHashtags, resolveCitations } from "./validate";
 
 export type ExplainAudience = "student" | "public";
@@ -23,7 +23,7 @@ export function getProviderChain(env: NodeJS.ProcessEnv = process.env): AIProvid
     ? llmProvider(
         createOpenRouterClient({
           apiKey: env.OPENROUTER_API_KEY,
-          model: env.OPENROUTER_MODEL || "google/gemma-4-31b-it:free",
+          model: env.OPENROUTER_MODEL || "nvidia/nemotron-3-super-120b-a12b:free",
           fallbackModel: env.OPENROUTER_FALLBACK_MODEL || "openrouter/free",
           siteUrl: env.SITE_URL,
         }),
@@ -67,9 +67,9 @@ async function loadSource(reportId: string) {
 }
 
 /** The best existing output for this exact document text: reviewer-approved first, then the newest draft. */
-export async function getCachedForReport(opts: { reportId: string; kind: AIKind; audience: ExplainAudience | "social" }) {
+export async function getCachedForReport(opts: { reportId: string; kind: AIKind; audience: ExplainAudience | "social"; language?: Language }) {
   const { hash } = await loadSource(opts.reportId);
-  const base = { sourceReportId: opts.reportId, kind: opts.kind, audience: opts.audience, sourceHash: hash };
+  const base = { sourceReportId: opts.reportId, kind: opts.kind, audience: opts.audience, language: opts.language ?? "en", sourceHash: hash };
   return (
     (await db.aIContent.findFirst({ where: { ...base, reviewStatus: "approved" }, orderBy: { reviewedAt: "desc" }, include: aiInclude })) ??
     (await db.aIContent.findFirst({ where: { ...base, reviewStatus: "pending" }, orderBy: { generatedAt: "desc" }, include: aiInclude }))
@@ -83,10 +83,11 @@ export async function generateForReport(opts: {
   reportId: string;
   kind: AIKind;
   audience: ExplainAudience | "social";
+  language?: Language;
   regenerate?: boolean;
   chain?: AIProvider[];
 }) {
-  const key = `${opts.reportId}|${opts.kind}|${opts.audience}|${opts.regenerate ? "re" : ""}`;
+  const key = `${opts.reportId}|${opts.kind}|${opts.audience}|${opts.language ?? "en"}|${opts.regenerate ? "re" : ""}`;
   const existing = inflight.get(key);
   if (existing) return existing;
   const p = generate(opts).finally(() => inflight.delete(key));
@@ -98,22 +99,25 @@ async function generate(opts: {
   reportId: string;
   kind: AIKind;
   audience: ExplainAudience | "social";
+  language?: Language;
   regenerate?: boolean;
   chain?: AIProvider[];
 }) {
   const { reportId, kind, audience } = opts;
+  const language: Language = opts.language ?? "en";
   const { doc, hash } = await loadSource(reportId);
 
   if (!opts.regenerate) {
     // Cache: a reviewer-approved version wins; otherwise the newest unreviewed draft for this exact source text.
-    const base = { sourceReportId: reportId, kind, audience, sourceHash: hash };
+    const base = { sourceReportId: reportId, kind, audience, language, sourceHash: hash };
     const cached =
       (await db.aIContent.findFirst({ where: { ...base, reviewStatus: "approved" }, orderBy: { reviewedAt: "desc" }, include: aiInclude })) ??
       (await db.aIContent.findFirst({ where: { ...base, reviewStatus: "pending" }, orderBy: { generatedAt: "desc" }, include: aiInclude }));
     if (cached) return { content: cached, cached: true, fallbackReason: null as string | null };
   }
 
-  const chain = opts.chain ?? getProviderChain();
+  const chain = (opts.chain ?? getProviderChain()).filter((p) => p.supportsLanguage(language));
+  if (!chain.length) throw new Error(`No configured AI provider can write in "${language}" (the offline summariser is English-only)`);
   // Captions need one fact: send only the intro and likeliest findings sections.
   const input = kind === "caption" ? focusSections(doc, 3) : doc;
   const failures: string[] = [];
@@ -124,7 +128,7 @@ async function generate(opts: {
       let model: string;
       let citedNumbers: string[];
       if (kind === "explanation") {
-        const { draft, model: m } = await provider.explain(input, audience as ExplainAudience);
+        const { draft, model: m } = await provider.explain(input, audience as ExplainAudience, language);
         text = [
           draft.headline.trim(),
           draft.summary.trim(),
@@ -134,8 +138,10 @@ async function generate(opts: {
         model = m;
         citedNumbers = draft.usedSections;
       } else {
-        const { draft, model: m } = await provider.caption(input);
-        text = `${draft.caption.trim()}\n\n${normaliseHashtags(draft.hashtags).join(" ")}`.trim();
+        const { draft, model: m } = await provider.caption(input, language);
+        // Models sometimes repeat the hashtags inside the caption; keep them in one place.
+        const caption = draft.caption.replace(/(\s*#[\p{L}\p{N}_]+)+\s*$/u, "").trim();
+        text = `${caption}\n\n${normaliseHashtags(draft.hashtags).join(" ")}`.trim();
         model = m;
         citedNumbers = draft.usedSections;
       }
@@ -147,6 +153,7 @@ async function generate(opts: {
           data: {
             kind,
             audience,
+            language,
             text,
             provider: provider.name,
             model,

@@ -171,6 +171,7 @@ model AIContent {
   id                 String            @id @default(cuid())
   kind               String // explanation | caption
   audience           String // student | public | social
+  language           String            @default("en") // en | hi
   text               String
   provider           String // openrouter | gemini | offline
   model              String
@@ -186,7 +187,7 @@ model AIContent {
   sourceFieldEntry   FieldEntry?       @relation(fields: [sourceFieldEntryId], references: [id], onDelete: Cascade)
   sources            AIContentSource[]
 
-  @@index([sourceReportId, kind, audience, sourceHash])
+  @@index([sourceReportId, kind, audience, language, sourceHash])
 }
 
 /// Section-level provenance: which exact document sections an output is grounded in.

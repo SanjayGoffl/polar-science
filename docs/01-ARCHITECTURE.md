@@ -27,6 +27,9 @@ Polar Stories is a single Next.js 16 application (App Router, TypeScript, React 
   - The model receives the document as numbered sections and must return JSON that names the sections it used (`usedSections`).
   - `src/lib/ai/validate.ts` maps those numbers to real section rows and rejects output that cites none.
   - The row and its `AIContentSource` links are written in one transaction.
+- **Language:**
+  - The reader can ask for the plain-language explanation in English or Hindi (Devanagari). The choice is sent as `language` on `POST /api/ai/generate` and cached separately (`AIContent.language`, default `"en"`), so a Hindi draft and an English draft of the same document sit side by side, each reviewed independently.
+  - Hosted providers (OpenRouter, Gemini) are instructed to reply in Hindi; the offline summariser is extractive from the English source text and can't translate, so it's skipped for `language: "hi"` (`AIProvider.supportsLanguage`). If no provider in the chain supports the requested language, generation fails with a clear error instead of silently returning English text mislabelled as Hindi.
 - **Token economy:**
   - Output is cached per document, kind, audience and source hash. The cache serves approved versions first.
   - Identical simultaneous requests share one call.

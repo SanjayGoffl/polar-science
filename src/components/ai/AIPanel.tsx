@@ -5,11 +5,13 @@ import type { ReaderReport } from "./ReportReader";
 
 type Tab = "explain" | "caption";
 type Audience = "student" | "public";
+type Language = "en" | "hi";
 
 interface AIContentDTO {
   id: string;
   kind: "explanation" | "caption";
   audience: string;
+  language: string;
   text: string;
   provider: string;
   model: string;
@@ -27,7 +29,7 @@ interface Result {
   fallbackReason: string | null;
 }
 
-const key = (tab: Tab, audience: Audience) => (tab === "caption" ? "caption" : `explain-${audience}`);
+const key = (tab: Tab, audience: Audience, language: Language) => (tab === "caption" ? `caption-${language}` : `explain-${audience}-${language}`);
 
 export function AIPanel({
   report,
@@ -44,15 +46,16 @@ export function AIPanel({
 }) {
   const [tab, setTab] = useState<Tab>(autoCaption ? "caption" : "explain");
   const [audience, setAudience] = useState<Audience>(autoExplain ?? "student");
+  const [language, setLanguage] = useState<Language>("en");
   const [results, setResults] = useState<Record<string, Result>>({});
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const current = results[key(tab, audience)];
+  const current = results[key(tab, audience, language)];
 
   const generate = useCallback(
-    async (t: Tab, a: Audience, regenerate = false) => {
-      const k = key(t, a);
+    async (t: Tab, a: Audience, l: Language, regenerate = false) => {
+      const k = key(t, a, l);
       setLoading(k);
       setError(null);
       try {
@@ -63,6 +66,7 @@ export function AIPanel({
             reportId: report.id,
             kind: t === "caption" ? "caption" : "explanation",
             audience: t === "caption" ? "social" : a,
+            language: l,
             regenerate,
           }),
         });
@@ -82,20 +86,20 @@ export function AIPanel({
   // New text is only generated when the reader asks for it, which keeps API usage to real demand.
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   useEffect(() => {
-    const k = key(tab, audience);
+    const k = key(tab, audience, language);
     if (results[k] || checked[k]) return;
     setChecked((c) => ({ ...c, [k]: true }));
     fetch("/api/ai/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reportId: report.id, kind: tab === "caption" ? "caption" : "explanation", audience: tab === "caption" ? "social" : audience, cachedOnly: true }),
+      body: JSON.stringify({ reportId: report.id, kind: tab === "caption" ? "caption" : "explanation", audience: tab === "caption" ? "social" : audience, language, cachedOnly: true }),
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((json) => {
         if (json?.content) setResults((r) => ({ ...r, [k]: json }));
       })
       .catch(() => undefined);
-  }, [tab, audience, results, checked, report.id]);
+  }, [tab, audience, language, results, checked, report.id]);
 
   useEffect(() => {
     onCitations(current ? current.content.sources.map((s) => s.section.number) : []);
@@ -106,7 +110,7 @@ export function AIPanel({
     setAudience(a);
   }
 
-  const isLoading = loading === key(tab, audience);
+  const isLoading = loading === key(tab, audience, language);
 
   return (
     <aside className="lg:sticky lg:top-24 card overflow-hidden shadow-lg lg:max-h-[calc(100vh-7rem)] flex flex-col" aria-label="AI explanation and caption tools">
@@ -124,7 +128,7 @@ export function AIPanel({
 
       <div className="p-5 overflow-y-auto">
         {tab === "explain" && (
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-muted">Written for</span>
             <div role="radiogroup" aria-label="Audience" className="flex rounded-full border border-line p-0.5 text-xs font-semibold">
               {(["student", "public"] as Audience[]).map((a) => (
@@ -142,13 +146,24 @@ export function AIPanel({
           </div>
         )}
 
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs text-muted">Language</span>
+          <div role="radiogroup" aria-label="Language" className="flex rounded-full border border-line p-0.5 text-xs font-semibold">
+            {(["en", "hi"] as Language[]).map((l) => (
+              <button key={l} role="radio" aria-checked={language === l} onClick={() => setLanguage(l)} className={`rounded-full px-3 py-1 ${language === l ? "bg-ink text-paper" : "text-ink-2"}`}>
+                {l === "en" ? "English" : "हिंदी"}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {!current && !isLoading && (
           <div className="text-center py-6">
             <p className="font-serif text-xl leading-snug">
               {tab === "explain" ? "Get a plain-language summary of this document." : "Draft a social media post about this document."}
             </p>
             <p className="text-sm text-muted mt-2">Drawn only from this document, with the sections it uses cited. Generated on request and reviewed by NCPOR before publication.</p>
-            <button onClick={() => generate(tab, audience)} className="btn btn-accent mt-5">
+            <button onClick={() => generate(tab, audience, language)} className="btn btn-accent mt-5">
               {tab === "explain" ? "Generate summary" : "Generate post"}
             </button>
           </div>
@@ -159,7 +174,7 @@ export function AIPanel({
         {error && !isLoading && (
           <div role="alert" className="rounded-lg bg-accent/10 text-accent-2 text-sm p-3 mb-3">
             {error}{" "}
-            <button className="underline font-semibold" onClick={() => generate(tab, audience)}>
+            <button className="underline font-semibold" onClick={() => generate(tab, audience, language)}>
               Try again
             </button>
           </div>
@@ -174,7 +189,7 @@ export function AIPanel({
             )}
             {tab === "explain" ? <Explanation text={current.content.text} /> : <CaptionCard text={current.content.text} report={report} content={current.content} />}
             <SourceBox content={current.content} report={report} onJump={onJump} />
-            <Provenance result={current} onRegenerate={() => generate(tab, audience, true)} />
+            <Provenance result={current} onRegenerate={() => generate(tab, audience, language, true)} />
           </div>
         )}
       </div>

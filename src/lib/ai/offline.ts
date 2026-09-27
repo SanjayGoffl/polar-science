@@ -113,6 +113,9 @@ export function createOfflineProvider(): AIProvider {
   return {
     name: "offline",
 
+    // Extractive from the (English) source text only — it can't translate, so it never claims to support Hindi.
+    supportsLanguage: (language) => language === "en",
+
     async explain(doc, audience) {
       const intro = doc.sections[0];
       let findings = findingsFor(doc, audience === "student" ? 3 : 4);
@@ -145,7 +148,7 @@ export function createOfflineProvider(): AIProvider {
       const pick = top ?? { s: sentences(doc.sections[0].body)[0], section: doc.sections[0], score: 0 };
       const fact = simplify(pick.s, "student");
       const short = fact.length > 170 ? fact.slice(0, fact.lastIndexOf(" ", 167)) + "…" : fact;
-      const region = /arctic|svalbard|kongsfjorden/i.test(doc.title + pick.s)
+      const region = /arctic|svalbard|ny-?[aå]lesund|himadri/i.test(doc.title + pick.s)
         ? "#Arctic"
         : /himalaya|chandra|glacier/i.test(doc.title) && !/antarctic/i.test(doc.title)
           ? "#Himalaya"

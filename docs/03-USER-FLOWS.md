@@ -19,7 +19,7 @@ Each flow below is covered by an automated test (`tests/e2e`, run against a prod
    - The "Where" chapter zooms the map to the station.
    - The gallery shows licensed photos with author and licence.
 3. **Explain simply** (`/reports/<slug>?explain=student`):
-   - The side panel shows a plain-language version, with a Students / General public toggle.
+   - The side panel shows a plain-language version, with a Students / General public toggle and an English / हिंदी language toggle. Each language is generated and cached separately, and reviewed the same way.
    - A "Based on" box lists the cited sections; clicking one scrolls to it in the text, and cited sections are marked.
    - The panel labels the provider and model, and whether the text has been reviewed.
 4. **Social caption:** a draft post with a character count. **Copy post** copies the text, the hashtags, the section citation and the original URL. *(user-flows.spec)*

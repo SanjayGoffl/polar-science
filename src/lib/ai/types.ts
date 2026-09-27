@@ -1,5 +1,6 @@
 export type AIKind = "explanation" | "caption";
 export type Audience = "student" | "public" | "social";
+export type Language = "en" | "hi";
 export type ProviderName = "openrouter" | "gemini" | "offline";
 
 /** A numbered piece of source text the model may cite. */
@@ -40,6 +41,8 @@ export interface Generated<T> {
 
 export interface AIProvider {
   name: ProviderName;
-  explain(doc: SourceDocument, audience: "student" | "public"): Promise<Generated<ExplanationDraft>>;
-  caption(doc: SourceDocument): Promise<Generated<CaptionDraft>>;
+  /** Offline is extractive-only and can't translate; it always reports supportsLanguage(hi) === false. */
+  supportsLanguage(language: Language): boolean;
+  explain(doc: SourceDocument, audience: "student" | "public", language?: Language): Promise<Generated<ExplanationDraft>>;
+  caption(doc: SourceDocument, language?: Language): Promise<Generated<CaptionDraft>>;
 }

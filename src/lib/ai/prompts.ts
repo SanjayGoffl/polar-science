@@ -1,7 +1,7 @@
-import type { SourceDocument } from "./types";
+import type { Language, SourceDocument } from "./types";
 
 /** Bump when prompts change, so cached outputs can be told apart. */
-export const PROMPT_VERSION = "2";
+export const PROMPT_VERSION = "3";
 
 // Kept compact on purpose: free-tier models have small budgets, and the source text is most of the prompt.
 // Instructions go in the user turn because some open models (e.g. Gemma) have no system role.
@@ -39,10 +39,15 @@ const AUDIENCE_BRIEF = {
 const CAPTION_BRIEF =
   "Task: one social-media post for NCPOR's public channels. caption: at most 240 characters, engaging but factual, at most one emoji, includes one concrete finding from the sections. hashtags: 2-4, each starting with #, no spaces. No links and no source line (the system adds the citation).";
 
-export function explainPrompt(doc: SourceDocument, audience: "student" | "public") {
-  return `${RULES}\n\n${AUDIENCE_BRIEF[audience]}\n\nJSON shape: ${EXPLAIN_SHAPE}\n\n${renderSources(doc)}`;
+const LANGUAGE_BRIEF: Record<Language, string> = {
+  en: "Write your reply in English.",
+  hi: "Write your reply in Hindi (Devanagari script), in plain, everyday Hindi a general reader can follow. Keep proper nouns, place names, organisation names and units in their common form (transliterate rather than force an unfamiliar translation). hashtags stay in English (e.g. #NCPOR).",
+};
+
+export function explainPrompt(doc: SourceDocument, audience: "student" | "public", language: Language = "en") {
+  return `${RULES}\n\n${AUDIENCE_BRIEF[audience]}\n\n${LANGUAGE_BRIEF[language]}\n\nJSON shape: ${EXPLAIN_SHAPE}\n\n${renderSources(doc)}`;
 }
 
-export function captionPrompt(doc: SourceDocument) {
-  return `${RULES}\n\n${CAPTION_BRIEF}\n\nJSON shape: ${CAPTION_SHAPE}\n\n${renderSources(doc)}`;
+export function captionPrompt(doc: SourceDocument, language: Language = "en") {
+  return `${RULES}\n\n${CAPTION_BRIEF}\n\n${LANGUAGE_BRIEF[language]}\n\nJSON shape: ${CAPTION_SHAPE}\n\n${renderSources(doc)}`;
 }
