@@ -156,7 +156,7 @@ export function StoryView({ story }: { story: StoryData }) {
               <a
                 href={`#chapter-${i}`}
                 aria-current={i === active ? "step" : undefined}
-                aria-label={`Chapter ${i + 1}: ${c.title}`}
+                aria-label={`${i + 1} ${SHORT[c.kind] ?? c.kind}: ${c.title}`}
                 title={c.title}
                 className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   i === active ? "bg-ink text-paper" : i < active ? "text-ink" : "text-muted hover:text-ink"
