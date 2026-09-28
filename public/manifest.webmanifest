@@ -5,7 +5,7 @@
   "start_url": "/field",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f6f5f1",
-  "theme_color": "#10202b",
+  "background_color": "#f5f8fa",
+  "theme_color": "#0e2a3b",
   "icons": [{ "src": "/icons/field.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }

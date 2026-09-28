@@ -1,23 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f6f5f1;
-  --color-paper-2: #edebe4;
-  --color-ink: #10202b;
-  --color-ink-2: #3c4b55;
-  --color-muted: #6b7880;
-  --color-line: #d9d6cc;
-  --color-accent: #c8472b;
-  --color-accent-2: #a93a21;
-  --color-ice: #dbe8ef;
+  --color-paper: #f5f8fa;
+  --color-paper-2: #e8eef2;
+  --color-ink: #0e2a3b;
+  --color-ink-2: #3a5363;
+  --color-muted: #677c89;
+  --color-line: #d3dde4;
+  --color-accent: #0b7a99;
+  --color-accent-2: #075f78;
+  --color-ice: #ddebf2;
   --color-antarctica: #2c5d7c;
   --color-arctic: #6d4a86;
   --color-himalaya: #a65a2e;
-  --color-ok: #2f7a4f;
-  --color-warn: #b7791f;
+  --color-ok: #25734a;
+  --color-warn: #9a6512;
 
-  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* One family for the interface; the serif is reserved for verbatim source text. */
+  --font-serif: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-quote: var(--font-plex-serif), Georgia, serif;
 }
 
 html { scroll-behavior: smooth; }
@@ -36,22 +38,27 @@ body {
 }
 
 .eyebrow {
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-muted);
 }
 
+/* Headings: Plex Sans, set tight. */
+.font-serif { font-weight: 600; letter-spacing: -0.02em; }
+h1.font-serif { letter-spacing: -0.03em; }
+
+/* Verbatim quotes from official sources are set in the serif, so the record reads as the record. */
+blockquote { font-family: var(--font-quote); font-weight: 400; }
+
 .btn {
   display: inline-flex; align-items: center; gap: .5rem;
-  border-radius: 999px; padding: .65rem 1.2rem; font-weight: 600; font-size: .92rem;
+  border-radius: 8px; padding: .65rem 1.1rem; font-weight: 600; font-size: .92rem;
   transition: background .15s, color .15s, transform .15s, border-color .15s;
   cursor: pointer;
 }
 .btn:active { transform: translateY(1px); }
-.btn-primary { background: var(--color-ink); color: var(--color-paper); }
-.btn-primary:hover { background: #000; }
+.btn-primary { background: var(--color-ink); color: #fff; }
+.btn-primary:hover { background: #0a1f2c; }
 .btn-accent { background: var(--color-accent); color: #fff; }
 .btn-accent:hover { background: var(--color-accent-2); }
 .btn-ghost { border: 1px solid var(--color-line); background: transparent; }
@@ -60,7 +67,7 @@ body {
 .btn-light:hover { background: #fff; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-.card { background: #fff; border: 1px solid var(--color-line); border-radius: 1rem; }
+.card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; }
 
 /* Leaflet markers */
 .pin { position: relative; color: var(--color-ink); }

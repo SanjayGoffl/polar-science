@@ -14,7 +14,7 @@ export function Logo() {
     <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden>
       <circle cx="16" cy="16" r="15" fill="#10202b" />
       <path d="M5 21 L12 12 L16 17 L20 10 L27 21 Z" fill="#f6f5f1" />
-      <path d="M12 12 L14 14.6 L10.6 14.2 Z M20 10 L22.2 13.6 L18.3 13.2 Z" fill="#c8472b" />
+      <path d="M12 12 L14 14.6 L10.6 14.2 Z M20 10 L22.2 13.6 L18.3 13.2 Z" fill="#0b7a99" />
     </svg>
   );
 }

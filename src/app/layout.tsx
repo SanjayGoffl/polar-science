@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ReopenTourButton, WelcomeTour } from "@/components/WelcomeTour";
 import { getSiteContent, type TourStep } from "@/lib/copy";
 
-const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", axes: ["opsz"] });
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex-sans" });
+const plexSerif = IBM_Plex_Serif({ subsets: ["latin"], weight: ["400", "500"], style: ["normal", "italic"], variable: "--font-plex-serif" });
 
 export const metadata: Metadata = {
   title: { default: "Polar Stories · NCPOR", template: "%s · Polar Stories" },
@@ -21,7 +21,7 @@ export const viewport: Viewport = { themeColor: "#10202b" };
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { t, json } = await getSiteContent();
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
+    <html lang="en" className={`${plexSans.variable} ${plexSerif.variable}`}>
       <body className="min-h-screen flex flex-col">
         <a href="#main" className="skip-link">
           Skip to content

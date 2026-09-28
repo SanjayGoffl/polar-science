@@ -18,7 +18,7 @@ export interface LLMClient {
   complete(prompt: string, model: string, opts?: { maxTokens?: number }): Promise<{ text: string; model: string }>;
 }
 
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 45_000;
 
 export function createOpenRouterClient(opts: {
   apiKey: string;
@@ -45,7 +45,10 @@ export function createOpenRouterClient(opts: {
           model,
           messages: [{ role: "user", content: prompt }],
           temperature: 0.3,
-          max_tokens: maxTokens,
+          // Free models are often reasoning models: keep reasoning short and out of the reply,
+          // and leave headroom so the JSON itself is never cut off.
+          max_tokens: maxTokens + 2000,
+          reasoning: { effort: "low", exclude: true },
           response_format: { type: "json_object" },
         }),
         signal: AbortSignal.timeout(TIMEOUT_MS),

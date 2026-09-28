@@ -2,7 +2,7 @@
  * Offline, deterministic stand-in for the LLM. It never invents facts: every
  * sentence it outputs is extracted from a source section (with jargon swapped
  * for plain words), and it reports exactly which sections it drew from.
- * Same interface as the Claude provider, so the rest of the app can't tell them apart.
+ * Same interface as hosted LLM providers, so the rest of the app can't tell them apart.
  */
 import type { AIProvider, SourceDocument, SourceSection } from "./types";
 
