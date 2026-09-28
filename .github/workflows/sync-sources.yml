@@ -1,48 +1,139 @@
 name: Refresh source snapshots
 
-# Re-fetches every registered NCPOR/PIB document (scripts/import-sources.mjs) and, if any
-# source text actually changed, commits the updated snapshot to main. That commit is the
-# trigger for the normal deploy pipeline, whose `db:setup` (prisma migrate deploy +
-# sources:sync) re-verifies every quote against the new text before it reaches the DB — so
-# a source page changing in a way that breaks a curated quote fails the deploy loudly
-# instead of silently publishing altered content.
+# Keeps official NCPOR/PIB snapshots fresh (at most ~24h old; GitHub cron can't express
+# "every 30 hours", and twice a day tolerates GitHub dropping a scheduled run).
+#
+#   1. fetch   – scripts/import-sources.mjs re-downloads every document in data/sources/registry.json
+#                and rewrites a snapshot only if its text actually changed.
+#   2. verify  – migrate + sync into a throwaway DB. sync-sources.ts fails if any curated quote in
+#                editorial.json no longer appears verbatim in the new source text.
+#   3. publish – verified changes are committed to main (which triggers the normal deploy and its
+#                `db:setup`). Changes that break a quote go to a pull request with the diff and the
+#                error instead, so altered source text is never published unreviewed.
+#   4. alert   – any document that fails to download opens (or updates) one tracking issue, which
+#                closes itself on the next fully successful run.
 on:
   schedule:
-    - cron: "17 */30 * * *" # every 30 hours; odd minute avoids the top-of-hour GitHub Actions crunch
+    - cron: "17 5,17 * * *"
   workflow_dispatch: {}
 
 permissions:
   contents: write
+  pull-requests: write
+  issues: write
 
 concurrency:
   group: sync-sources
   cancel-in-progress: false
 
+env:
+  REVIEW_BRANCH: automated/source-refresh
+  ALERT_TITLE: "Source fetch failing"
+
 jobs:
-  fetch:
+  refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
 
       - uses: actions/setup-node@v5
         with:
           node-version: 20
+          cache: npm
 
       - run: npm ci
 
-      - name: Fetch latest source snapshots
-        run: npm run sources:fetch
+      - name: Fetch
+        id: fetch
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm run --silent sources:fetch 2>&1 | tee "$RUNNER_TEMP/fetch.log"
 
-      - name: Commit changed snapshots
+      - name: Detect changes
+        id: changes
+        run: |
+          if git diff --quiet -- data/sources && [ -z "$(git ls-files --others --exclude-standard data/sources)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git add -N data/sources
+            git diff --stat -- data/sources
+          fi
+
+      - name: Verify quotes against new text
+        id: verify
+        if: steps.changes.outputs.changed == 'true'
+        continue-on-error: true
+        env:
+          DATABASE_URL: file:./.ci-verify.db
+        run: |
+          set -o pipefail
+          { npx prisma migrate deploy && npm run --silent sources:sync; } 2>&1 | tee "$RUNNER_TEMP/verify.log"
+
+      - name: Publish verified changes
+        if: steps.changes.outputs.changed == 'true' && steps.verify.outcome == 'success'
         run: |
           git config user.name "polar-stories-bot"
-          git config user.email "actions@users.noreply.github.com"
-          if git diff --quiet -- data/sources; then
-            echo "No source changes."
-            exit 0
-          fi
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/sources
-          git commit -m "chore: refresh source snapshots [automated]"
-          git push
+          git commit -m "chore(sources): refresh official snapshots [automated]" -m "$(git diff --cached --stat)"
+          git push origin HEAD:${{ github.event.repository.default_branch }}
+          # A verified refresh supersedes any refresh still waiting for review.
+          gh pr close "$REVIEW_BRANCH" --delete-branch --comment "Superseded by a verified automatic refresh." 2>/dev/null || true
+
+      - name: Open review PR for changes that break a quote
+        if: steps.changes.outputs.changed == 'true' && steps.verify.outcome == 'failure'
+        run: |
+          git config user.name "polar-stories-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$REVIEW_BRANCH"
+          git add data/sources
+          git commit -m "chore(sources): refresh official snapshots (needs editorial review)"
+          git push --force origin "$REVIEW_BRANCH"
+          {
+            echo "An official source document changed and at least one curated quote in \`data/sources/editorial.json\` no longer matches it, so this refresh was **not** published."
+            echo
+            echo "Update the quote (or the section it points to) in \`editorial.json\` on this branch, then merge."
+            echo
+            echo "### Verification error"
+            echo '```'
+            tail -n 30 "$RUNNER_TEMP/verify.log"
+            echo '```'
+            echo
+            echo "### What changed in the sources"
+            echo '```diff'
+            git diff HEAD~1 -- data/sources | head -c 50000
+            echo '```'
+          } > "$RUNNER_TEMP/pr.md"
+          if gh pr view "$REVIEW_BRANCH" --json state -q .state 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$REVIEW_BRANCH" --body-file "$RUNNER_TEMP/pr.md"
+          else
+            gh pr create --head "$REVIEW_BRANCH" --title "Source refresh needs editorial review" --body-file "$RUNNER_TEMP/pr.md"
+          fi
+
+      - name: Alert on fetch failures
+        if: steps.fetch.outcome == 'failure'
+        run: |
+          {
+            echo "The scheduled source refresh could not download some documents ($(date -u +'%Y-%m-%d %H:%M UTC'), [run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}))."
+            echo
+            echo '```'
+            grep -P '\terror\t' "$RUNNER_TEMP/fetch.log" || tail -n 20 "$RUNNER_TEMP/fetch.log"
+            echo '```'
+            echo
+            echo "Repeated failures for the same document usually mean its page moved or its layout changed (see \`parseNcpor\` / \`parsePib\` in \`scripts/import-sources.mjs\`)."
+          } > "$RUNNER_TEMP/alert.md"
+          n=$(gh issue list --state open --search "in:title \"$ALERT_TITLE\"" --json number -q '.[0].number')
+          if [ -n "$n" ]; then gh issue comment "$n" --body-file "$RUNNER_TEMP/alert.md"
+          else gh issue create --title "$ALERT_TITLE" --body-file "$RUNNER_TEMP/alert.md"; fi
+          exit 1
+
+      - name: Close alert after a clean run
+        if: steps.fetch.outcome == 'success'
+        run: |
+          n=$(gh issue list --state open --search "in:title \"$ALERT_TITLE\"" --json number -q '.[0].number')
+          [ -z "$n" ] || gh issue close "$n" --comment "All sources fetched successfully again."

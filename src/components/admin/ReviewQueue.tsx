@@ -15,6 +15,7 @@ export interface ReviewItem {
   photoUrl: string | null;
   source: { href: string; label: string } | null;
   edited?: boolean;
+  stale?: boolean;
 }
 
 type Filter = "pending" | "approved" | "rejected";
@@ -83,6 +84,14 @@ export function ReviewQueue({ items }: { items: ReviewItem[] }) {
                   {i.kind === "field" ? "Field entry" : "AI draft"}
                 </span>
                 <span className="font-semibold">{i.title}</span>
+                {i.stale && (
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-wider rounded px-1.5 py-0.5 bg-accent/10 text-accent"
+                    title="The cited document was updated after this was written. Visitors are no longer shown it."
+                  >
+                    Source changed
+                  </span>
+                )}
               </div>
               <p className="text-xs text-muted mt-1">{i.meta}</p>
               {editing === i.id ? (

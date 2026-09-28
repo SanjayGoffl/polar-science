@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { ReviewQueue, type ReviewItem } from "@/components/admin/ReviewQueue";
 import { isAdmin } from "@/lib/admin";
+import { currentSourceHashes } from "@/lib/ai";
 import { db } from "@/lib/db";
 import { logout } from "./actions";
 
@@ -20,6 +21,9 @@ export default async function AdminPage() {
       take: 100,
     }),
   ]);
+  const hashes = await currentSourceHashes(aiItems.flatMap((a) => (a.sourceReportId ? [a.sourceReportId] : [])));
+  const isStale = (a: (typeof aiItems)[number]) => !!a.sourceReportId && hashes.get(a.sourceReportId) !== a.sourceHash;
+  const staleApproved = aiItems.filter((a) => a.reviewStatus === "approved" && isStale(a)).length;
 
   const items: ReviewItem[] = [
     ...fieldEntries.map((f) => ({
@@ -42,6 +46,7 @@ export default async function AdminPage() {
       body: a.text,
       meta: `${a.provider === "offline" ? "Offline summariser" : `${a.provider === "gemini" ? "Gemini" : "OpenRouter"} · ${a.model}`} · generated ${a.generatedAt.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`,
       edited: a.editedByReviewer,
+      stale: isStale(a),
       photoUrl: null,
       source: a.sourceReport
         ? {
@@ -66,6 +71,13 @@ export default async function AdminPage() {
           <button className="btn btn-ghost !py-1.5 !text-xs">Sign out</button>
         </form>
       </div>
+      {staleApproved > 0 && (
+        <p role="status" className="card p-4 mb-6 text-sm">
+          <strong>{staleApproved} approved AI {staleApproved === 1 ? "output is" : "outputs are"} outdated.</strong> The source document changed
+          after {staleApproved === 1 ? "it was" : "they were"} written, so visitors now get a fresh draft instead. Items marked
+          &ldquo;Source changed&rdquo; can be rejected to clear them.
+        </p>
+      )}
       <ReviewQueue items={items} />
     </div>
   );

@@ -47,6 +47,15 @@ export function hashSource(doc: SourceDocument) {
   return h.digest("hex").slice(0, 32);
 }
 
+/** Current hashSource() of each report, for spotting AI outputs written against older text. */
+export async function currentSourceHashes(reportIds: string[]): Promise<Map<string, string>> {
+  const reports = await db.report.findMany({
+    where: { id: { in: [...new Set(reportIds)] } },
+    select: { id: true, title: true, sections: { orderBy: { order: "asc" }, select: { id: true, number: true, heading: true, body: true } } },
+  });
+  return new Map(reports.map((r) => [r.id, hashSource({ title: r.title, kind: "", expedition: "", sections: r.sections })]));
+}
+
 const aiInclude = {
   sources: { include: { section: { select: { id: true, number: true, heading: true } } } },
   sourceReport: { select: { id: true, slug: true, title: true, type: true, contentStatus: true } },
